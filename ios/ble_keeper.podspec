@@ -10,9 +10,9 @@ Pod::Spec.new do |s|
 Owns the Core Bluetooth connection with state restoration so it survives the
 Flutter UI, system termination and reboots.
                        DESC
-  s.homepage         = 'https://github.com/YOUR_GITHUB_USERNAME/ble_keeper'
+  s.homepage         = 'https://github.com/Ahmadhussain0335/ble_keeper'
   s.license          = { :type => 'BSD-3-Clause', :file => '../LICENSE' }
-  s.author           = { 'Ahmad Hussain' => 'https://github.com/YOUR_GITHUB_USERNAME' }
+  s.author           = { 'Ahmad Hussain' => 'https://github.com/Ahmadhussain0335' }
   s.source           = { :path => '.' }
   s.source_files = 'ble_keeper/Sources/ble_keeper/**/*'
   s.dependency 'Flutter'

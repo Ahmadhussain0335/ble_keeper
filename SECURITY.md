@@ -8,7 +8,7 @@ Only the latest published version receives fixes.
 
 Please do not open a public issue for security problems. Use GitHub's
 private vulnerability reporting ("Report a vulnerability" on the Security tab
-of https://github.com/YOUR_GITHUB_USERNAME/ble_keeper) or email
+of https://github.com/Ahmadhussain0335/ble_keeper) or email
 SECURITY_CONTACT_EMAIL.
 
 Include the plugin version, platform and OS version, and steps to reproduce.

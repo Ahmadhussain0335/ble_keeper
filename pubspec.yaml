@@ -3,8 +3,8 @@ description: >-
   Keeps a BLE peripheral connected in the background, after the app is killed
   and after a reboot, on Android and iOS, and reports when the OS blocks it.
 version: 0.1.0
-repository: https://github.com/YOUR_GITHUB_USERNAME/ble_keeper
-issue_tracker: https://github.com/YOUR_GITHUB_USERNAME/ble_keeper/issues
+repository: https://github.com/Ahmadhussain0335/ble_keeper
+issue_tracker: https://github.com/Ahmadhussain0335/ble_keeper/issues
 topics:
   - bluetooth
   - ble

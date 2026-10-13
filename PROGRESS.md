@@ -127,7 +127,7 @@ Not run: integration tests on a device, the CI workflows on GitHub, any hardware
 
 ## Before publishing I must
 
-1. Replace `YOUR_GITHUB_USERNAME` everywhere (`grep -rn YOUR_GITHUB_USERNAME .`) and push the repository so pana can verify the URL.
+1. Done: GitHub username `Ahmadhussain0335`, repository https://github.com/Ahmadhussain0335/ble_keeper (remote `origin` added, nothing pushed yet). Push the repository so pana can verify the URL.
 2. Decide the final package name and rename before 0.1.0 (checklist in CONTRIBUTING.md). The restore identifier and storage names change with it; renaming after release would orphan existing users' sessions.
 3. Replace `doc/screenshot.png` with a real screenshot.
 4. Install Xcode 26 (iOS 26 device testing) and run the hardware checklist.
