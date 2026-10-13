@@ -37,6 +37,12 @@ internal class GattStatusTest {
     }
 
     @Test
+    fun peerTerminated_afterStableLink_reconnectsAtOnce_butShortLivedLinkBacksOff() {
+        assertFalse(GattStatus.needsBackoff(0x13, linkWasUp = true))
+        assertTrue(GattStatus.needsBackoff(0x13, linkWasUp = false))
+    }
+
+    @Test
     fun backoff_forImmediateFailuresAnd133_notForLinkLoss() {
         assertTrue(GattStatus.needsBackoff(133, linkWasUp = true))
         assertTrue(GattStatus.needsBackoff(0x3E, linkWasUp = false))

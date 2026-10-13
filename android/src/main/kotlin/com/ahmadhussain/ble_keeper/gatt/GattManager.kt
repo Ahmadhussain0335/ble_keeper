@@ -13,6 +13,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import com.ahmadhussain.ble_keeper.KeeperConstants
 import com.ahmadhussain.ble_keeper.PBlockedReason
 import com.ahmadhussain.ble_keeper.PDisconnectReason
@@ -40,11 +41,13 @@ import java.util.UUID
  * to it (see connectGattCompat). Suspend functions hop to the handler
  * dispatcher.
  *
- * Reconnect: the first attempt is a direct connect (autoConnect = false),
- * because autoConnect = true only finds devices already in the stack's cache
- * and can wait forever for one it has never seen. After the first success,
- * every reconnect uses autoConnect = true, which has no timeout and lets the
- * controller reconnect at low duty cycle while the device is out of range.
+ * Reconnect: see [ConnectStrategy]. Direct connects (autoConnect = false)
+ * first, because autoConnect = true only reliably finds devices the stack has
+ * seen; autoConnect = true after the first success or after a few minutes of
+ * failed direct attempts, so an absent device does not drain the battery.
+ * autoConnect has no timeout; a watchdog recreates one that has been pending
+ * for a long time. The attempt counter resets only after a link stayed up
+ * for 30 s, so a link that keeps dropping right after setup backs off.
  * After any disconnect the BluetoothGatt is closed and a new one created;
  * reusing a disconnected object behaves differently across vendors.
  */
@@ -73,7 +76,13 @@ internal class GattManager(
     private var state = State.IDLE
     private var gatt: BluetoothGatt? = null
     private var attempt = 0
-    private var everConnected = false
+    private val strategy = ConnectStrategy()
+    private var lastAttemptAuto = false
+    private var readyAtMs: Long? = null
+    private var watchdogJob: Job? = null
+
+    /** Connected was emitted for the current link; Disconnected pairs with it. */
+    private var connectedEmitted = false
     private var localDisconnect = false
     private var mtu = KeeperConstants.DEFAULT_MTU
     private var reconnectJob: Job? = null
@@ -97,17 +106,19 @@ internal class GattManager(
 
     fun stop() = onGattThread {
         if (state == State.STOPPED) return@onGattThread
-        val wasUp = linkUp
+        val wasConnected = connectedEmitted
+        connectedEmitted = false
         state = State.STOPPED
         reconnectJob?.cancel()
         setupJob?.cancel()
+        watchdogJob?.cancel()
         queue.close(KeeperException("not_connected", "stopped"))
         gatt?.let {
             it.disconnect()
             it.close()
         }
         gatt = null
-        if (wasUp) emit(Events.disconnected(deviceId, PDisconnectReason.STOPPED, null))
+        if (wasConnected) emit(Events.disconnected(deviceId, PDisconnectReason.STOPPED, null))
         scope.cancel()
     }
 
@@ -117,13 +128,17 @@ internal class GattManager(
      */
     fun onBluetoothOff() = onGattThread {
         if (state == State.STOPPED || state == State.BLUETOOTH_OFF) return@onGattThread
-        val wasUp = linkUp
+        val wasConnected = connectedEmitted
+        connectedEmitted = false
+        readyAtMs = null
         reconnectJob?.cancel()
         setupJob?.cancel()
+        watchdogJob?.cancel()
+        strategy.onBluetoothOff()
         queue.close(KeeperException("bluetooth_off", "Bluetooth is off"))
         gatt?.close()
         gatt = null
-        if (wasUp) emit(Events.disconnected(deviceId, PDisconnectReason.BLUETOOTH_OFF, null))
+        if (wasConnected) emit(Events.disconnected(deviceId, PDisconnectReason.BLUETOOTH_OFF, null))
         state = State.BLUETOOTH_OFF
     }
 
@@ -195,9 +210,31 @@ internal class GattManager(
         queue.reopen()
         localDisconnect = false
         state = State.CONNECTING
-        val g = connectGattCompat(device, autoConnect = everConnected)
+        val now = SystemClock.elapsedRealtime()
+        val auto = strategy.useAutoConnect(now)
+        strategy.onAttempt(auto, now)
+        lastAttemptAuto = auto
+        val g = connectGattCompat(device, autoConnect = auto)
         gatt = g
-        if (g == null) scheduleReconnect(GattStatus.GATT_ERROR, linkWasUp = false)
+        if (g == null) {
+            strategy.onConnectFailed(auto)
+            scheduleReconnect(GattStatus.GATT_ERROR, stableLink = false)
+            return
+        }
+        if (auto) armWatchdog(g)
+    }
+
+    private fun armWatchdog(g: BluetoothGatt) {
+        watchdogJob?.cancel()
+        watchdogJob = scope.launch {
+            delay(strategy.autoConnectWatchdogMs)
+            if (state == State.CONNECTING && gatt === g) {
+                note(deviceId, "autoConnect pending for ${strategy.autoConnectWatchdogMs / 60_000} min, recreating it")
+                g.close()
+                gatt = null
+                connect()
+            }
+        }
     }
 
     /**
@@ -229,8 +266,16 @@ internal class GattManager(
             return
         }
         if (newState == BluetoothProfile.STATE_CONNECTED && status == GattStatus.SUCCESS) {
-            everConnected = true
+            // Some stacks report CONNECTED twice; a second setup would run two
+            // discoveries and subscriptions in parallel.
+            if (state != State.CONNECTING) {
+                note(deviceId, "ignoring CONNECTED in state $state")
+                return
+            }
+            watchdogJob?.cancel()
+            strategy.onConnected()
             state = State.DISCOVERING
+            setupJob?.cancel()
             setupJob = scope.launch { runSetupStep(g) { setup(g) } }
         } else if (newState == BluetoothProfile.STATE_DISCONNECTED || status != GattStatus.SUCCESS) {
             onDisconnected(g, status)
@@ -247,8 +292,12 @@ internal class GattManager(
         state = State.SUBSCRIBING
         subscribeAll(g, session.subscribe)
         state = State.READY
-        attempt = 0
-        emit(Events.connected(deviceId))
+        readyAtMs = SystemClock.elapsedRealtime()
+        // Not again after a service-change rediscovery on the same link.
+        if (!connectedEmitted) {
+            connectedEmitted = true
+            emit(Events.connected(deviceId))
+        }
     }
 
     /** Runs a setup step; on failure drops the link so the reconnect loop starts over. */
@@ -308,26 +357,33 @@ internal class GattManager(
 
     private fun onDisconnected(g: BluetoothGatt, status: Int) {
         val wasUp = linkUp
-        val wasReady = state == State.READY
+        val wasConnected = connectedEmitted
+        val stable = strategy.isStable(readyAtMs, SystemClock.elapsedRealtime())
+        connectedEmitted = false
+        readyAtMs = null
         setupJob?.cancel()
+        watchdogJob?.cancel()
         queue.close(KeeperException("not_connected", "device disconnected"))
         g.close()
         if (gatt === g) gatt = null
         if (state == State.STOPPED || state == State.BLUETOOTH_OFF) return
-        if (wasUp) {
+        if (!wasUp) strategy.onConnectFailed(lastAttemptAuto)
+        if (wasConnected) {
             val reason = GattStatus.disconnectReason(status, linkWasUp = true, localRequest = localDisconnect)
             emit(Events.disconnected(deviceId, reason, status))
         } else {
-            note(deviceId, "connect attempt failed, status $status")
+            note(deviceId, "connect attempt or setup failed, status $status")
         }
         localDisconnect = false
-        // Only a link that was fully set up reconnects at once. A link that
-        // dropped during setup (CCCD rejected, discovery timeout) backs off,
-        // otherwise an in-range device would be reconnected in a tight loop.
-        scheduleReconnect(status, linkWasUp = wasReady)
+        // Only a link that stayed up long enough reconnects at once and starts
+        // counting attempts from 1 again. Links that fail during setup or drop
+        // right after it back off, otherwise an in-range device would be
+        // reconnected in a tight loop.
+        if (stable) attempt = 0
+        scheduleReconnect(status, stableLink = stable)
     }
 
-    private fun scheduleReconnect(status: Int, linkWasUp: Boolean) {
+    private fun scheduleReconnect(status: Int, stableLink: Boolean) {
         if (!adapter.isEnabled) {
             state = State.BLUETOOTH_OFF
             return
@@ -336,7 +392,7 @@ internal class GattManager(
         // A lost link reconnects at once with autoConnect, which waits for the
         // device without timing out. Immediate failures (status 133, connect
         // timeout) back off exponentially so a broken stack is not hammered.
-        val wait = if (GattStatus.needsBackoff(status, linkWasUp)) backoff.delayMs(attempt) else 0L
+        val wait = if (GattStatus.needsBackoff(status, stableLink)) backoff.delayMs(attempt) else 0L
         emit(Events.reconnecting(deviceId, attempt))
         state = State.WAITING
         reconnectJob = scope.launch {
@@ -386,7 +442,22 @@ internal class GattManager(
             onGattThread { if (g === gatt) finish(OP_DISCOVER, status, Unit) }
 
         override fun onMtuChanged(g: BluetoothGatt, mtu: Int, status: Int) =
-            onGattThread { if (g === gatt) finish(OP_MTU, status, mtu) }
+            onGattThread {
+                if (g !== gatt) return@onGattThread
+                // The peripheral can also change the MTU later; always keep it.
+                if (status == BluetoothGatt.GATT_SUCCESS) this@GattManager.mtu = mtu
+                finish(OP_MTU, status, mtu)
+            }
+
+        // API 31+: the peripheral changed its GATT table (Service Changed
+        // indication); cached handles are stale, so rediscover and resubscribe.
+        override fun onServiceChanged(g: BluetoothGatt) = onGattThread {
+            if (g !== gatt || state != State.READY) return@onGattThread
+            note(deviceId, "services changed, rediscovering")
+            state = State.DISCOVERING
+            setupJob?.cancel()
+            setupJob = scope.launch { runSetupStep(g) { setup(g) } }
+        }
 
         override fun onDescriptorWrite(g: BluetoothGatt, d: BluetoothGattDescriptor, status: Int) =
             onGattThread { if (g === gatt) finish(OP_CCCD, status, Unit) }

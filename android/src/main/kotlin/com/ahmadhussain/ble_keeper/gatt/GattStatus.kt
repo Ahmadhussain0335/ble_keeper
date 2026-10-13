@@ -37,7 +37,11 @@ internal object GattStatus {
             else -> PDisconnectReason.UNKNOWN
         }
 
-    /** Failures that come back immediately and need backoff before retrying. */
+    /**
+     * Whether to wait before the next connect. Only a link that was stable
+     * (up for a while, see ConnectStrategy) reconnects at once; failed
+     * attempts, setup failures, short-lived links and status 133 back off.
+     */
     fun needsBackoff(status: Int, linkWasUp: Boolean): Boolean =
         !linkWasUp || status == GATT_ERROR
 }
