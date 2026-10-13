@@ -4,6 +4,34 @@ Resume point for "continue from PROGRESS.md". Updated after every step.
 
 Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 
+## Verification-and-fix pass (2026-10-13, after the first push)
+
+Brief: confirm each review finding in code, fix with a test where possible, or reject with a
+reason. Local commits only; the user pushes. Status per finding:
+
+| ID | Status | Change | Test |
+|---|---|---|---|
+| H1 iOS pending connect | Confirmed, fixed | PeripheralSession: `ReconnectDecision` (delay only in foreground), `appDidEnterBackground`, failure counter + Blocked at 5; holder/runtime track foreground | ReconnectDecisionTests |
+| H2 Android direct-connect forever | pending | | |
+| H3 Dart attach/detach race | pending | | |
+| H4 publish workflow | pending | | |
+| M1 short-lived link loop | pending | | |
+| M2 startForeground before stop | pending | | |
+| M3 duplicate CONNECTED | pending | | |
+| M4 log aggregation | pending | | |
+| M5 iOS restore delegates | pending | | |
+| M6 iOS headless gate | pending | | |
+| M7 iOS notify failure | pending | | |
+| M8 never evict non-Data | pending | | |
+| M9 force-quit wording | pending | | |
+| M10 min Flutter CI | pending | | |
+| M11 CI XCTest/dry-run/timeouts | pending | | |
+| M12 move Pigeon impl to src | pending | | |
+| Low items | pending | | |
+| Part 2 docs | pending | | |
+| Part 3 gates | pending | | |
+| Consumer app test | pending | | |
+
 ## Phase status
 
 | Phase | Status |

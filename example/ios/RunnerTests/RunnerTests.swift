@@ -318,3 +318,20 @@ class MappingTests: XCTestCase {
     XCTAssertThrowsError(try BleKeeperPlugin.deviceId("AA:BB:CC:DD:EE:FF"))
   }
 }
+
+class ReconnectDecisionTests: XCTestCase {
+  func testBackgroundAlwaysConnectsImmediately() {
+    for failures in [0, 1, 5, 50] {
+      XCTAssertEqual(ReconnectDecision.delay(consecutiveFailures: failures, foreground: false), 0)
+    }
+  }
+
+  func testForegroundBacksOffExponentiallyWithCap() {
+    let delays = (1...8).map { ReconnectDecision.delay(consecutiveFailures: $0, foreground: true) }
+    XCTAssertEqual(delays, [1, 2, 4, 8, 16, 32, 60, 60])
+  }
+
+  func testNoDelayWithoutFailures() {
+    XCTAssertEqual(ReconnectDecision.delay(consecutiveFailures: 0, foreground: true), 0)
+  }
+}

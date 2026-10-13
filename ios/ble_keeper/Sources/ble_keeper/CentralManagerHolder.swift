@@ -22,6 +22,8 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
   private var restoredThisLaunch = false
   private var firstStateHandled = false
   private var reportedUnknown = Set<String>()
+  /// Mirrors UIApplication state; written via `setForeground`, read on `queue`.
+  private var appInForeground = false
 
   init(runtime: KeeperRuntime, restore: Bool) {
     self.runtime = runtime
@@ -31,6 +33,14 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
       options[CBCentralManagerOptionRestoreIdentifierKey] = KeeperConstants.restoreIdentifier
     }
     manager = CBCentralManager(delegate: self, queue: queue, options: options)
+  }
+
+  /// Called on the main thread when the app enters or leaves the foreground.
+  func setForeground(_ foreground: Bool) {
+    queue.async {
+      self.appInForeground = foreground
+      if !foreground { self.sessions.values.forEach { $0.appDidEnterBackground() } }
+    }
   }
 
   /// Aligns connections with the persisted sessions.
@@ -167,7 +177,8 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
       let session = PeripheralSession(
         session: s, peripheral: peripheral, central: manager, queue: queue,
         emit: { [runtime] in runtime.publish($0) },
-        note: { [runtime] text in runtime.note(s.deviceId, text) })
+        note: { [runtime] text in runtime.note(s.deviceId, text) },
+        isForeground: { [weak self] in self?.appInForeground ?? false })
       sessions[s.deviceId] = session
       session.start()
     }

@@ -49,6 +49,13 @@ final class KeeperRuntime {
     hub.onDeliveryFailed = { [weak self] in
       DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self?.hub.retry() }
     }
+    // Foreground state for the reconnect policy (PeripheralSession).
+    NotificationCenter.default.addObserver(
+      forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+    ) { [weak self] _ in self?.central?.setForeground(true) }
+    NotificationCenter.default.addObserver(
+      forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main
+    ) { [weak self] _ in self?.central?.setForeground(false) }
     // Only called when the app is running (foreground or background, not
     // suspended) and the user swipes it away; never for suspended apps.
     NotificationCenter.default.addObserver(
@@ -216,7 +223,9 @@ final class KeeperRuntime {
       for problem in config.problems { publish(Events.blocked(.misconfigured, detail: problem)) }
     }
     guard config.hasUsageDescription else { return false }
-    central = CentralManagerHolder(runtime: self, restore: config.hasBackgroundMode)
+    let holder = CentralManagerHolder(runtime: self, restore: config.hasBackgroundMode)
+    holder.setForeground(UIApplication.shared.applicationState == .active)
+    central = holder
     return true
   }
 }

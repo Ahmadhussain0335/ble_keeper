@@ -45,6 +45,24 @@ final class Waiter<T> {
   }
 }
 
+/// When to issue the next connect after a failure.
+///
+/// A pending `connect()` is the only thing that lets iOS wake or relaunch a
+/// suspended app when the peripheral comes back, and GCD timers do not run
+/// while the app is suspended. So in the background the connect is issued at
+/// once (it stays pending without timing out). Only in the foreground, where
+/// a tight loop would be visible and the timer does run, failures back off.
+enum ReconnectDecision {
+  /// Consecutive failures after which a Blocked event is emitted once.
+  static let reportThreshold = 5
+
+  /// Seconds to wait before the next connect; 0 means connect now.
+  static func delay(consecutiveFailures: Int, foreground: Bool) -> TimeInterval {
+    guard foreground, consecutiveFailures > 0 else { return 0 }
+    return min(60.0, pow(2.0, Double(min(consecutiveFailures - 1, 6))))
+  }
+}
+
 /// Owns the connection to one peripheral and keeps it alive.
 ///
 /// Threading: every method runs on the BLE queue that the CBCentralManager
@@ -53,8 +71,10 @@ final class Waiter<T> {
 /// Reconnect: `CBCentralManager.connect` does not time out (Apple
 /// documentation for connect(_:options:)). A pending connect survives the
 /// app being suspended, and with state restoration the system relaunches the
-/// app when it completes. So after a disconnect the session simply issues a
-/// new pending connect; no polling or backoff is needed.
+/// app when it completes. So a session always keeps a pending connect
+/// outstanding while it is not connected. Failures (connect failed, link
+/// dropped during setup) only add a delay while the app is in the
+/// foreground; see ReconnectDecision.
 final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private enum State { case idle, connecting, discovering, subscribing, ready, waiting, off, stopped }
 
@@ -64,9 +84,12 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private let queue: DispatchQueue
   private let emit: (PEvent) -> Void
   private let note: (String) -> Void
+  private let isForeground: () -> Bool
 
   private var state = State.idle
   private var attempt = 0
+  /// Failures since the last successful setup; drives the foreground delay.
+  private var consecutiveFailures = 0
   private var pendingServices = 0
   private var pendingNotify = Set<String>()
   private var setupToken = 0
@@ -83,7 +106,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
 
   init(
     session: Session, peripheral: CBPeripheral, central: CBCentralManager, queue: DispatchQueue,
-    emit: @escaping (PEvent) -> Void, note: @escaping (String) -> Void
+    emit: @escaping (PEvent) -> Void, note: @escaping (String) -> Void,
+    isForeground: @escaping () -> Bool = { false }
   ) {
     self.session = session
     self.peripheral = peripheral
@@ -91,6 +115,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     self.queue = queue
     self.emit = emit
     self.note = note
+    self.isForeground = isForeground
     super.init()
   }
 
@@ -123,7 +148,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     state = .stopped
     failAll(KeeperError(code: "not_connected", message: "stopped"))
     central.cancelPeripheralConnection(peripheral)
-    if wasUp { emit(Events.disconnected(deviceId, .stopped, code: nil)) }
+    if wasUp, connectedEmitted { emit(Events.disconnected(deviceId, .stopped, code: nil)) }
+    connectedEmitted = false
   }
 
   /// Bluetooth off invalidates every connection; no didDisconnect follows.
@@ -132,7 +158,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     let wasUp = linkUp
     failAll(KeeperError(code: "bluetooth_off", message: "Bluetooth is off"))
     state = .off
-    if wasUp { emit(Events.disconnected(deviceId, .bluetoothOff, code: nil)) }
+    if wasUp, connectedEmitted { emit(Events.disconnected(deviceId, .bluetoothOff, code: nil)) }
+    connectedEmitted = false
   }
 
   // MARK: Central callbacks (forwarded by CentralManagerHolder)
@@ -153,14 +180,29 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     note("connect failed: \(error?.localizedDescription ?? "unknown")")
     attempt += 1
     emit(Events.reconnecting(deviceId, attempt: attempt))
-    connectAfterBackoff()
+    reconnectAfterFailure()
   }
 
-  /// 1, 2, 4 ... 60 s. Used after failures that would otherwise repeat at
-  /// once (connect failure, link dropped during setup).
-  private func connectAfterBackoff() {
+  /// The app moved to the background: a delayed reconnect would never fire
+  /// while suspended, so issue the pending connect now.
+  func appDidEnterBackground() {
+    if state == .waiting { connect() }
+  }
+
+  private func reconnectAfterFailure() {
+    consecutiveFailures += 1
+    if consecutiveFailures == ReconnectDecision.reportThreshold {
+      emit(
+        Events.blocked(
+          .unknown, deviceId: deviceId,
+          detail: "connection setup failed \(consecutiveFailures) times in a row; still retrying"))
+    }
+    let delay = ReconnectDecision.delay(consecutiveFailures: consecutiveFailures, foreground: isForeground())
+    guard delay > 0 else {
+      connect()
+      return
+    }
     state = .waiting
-    let delay = min(60.0, pow(2.0, Double(min(attempt - 1, 6))))
     queue.asyncAfter(deadline: .now() + delay) { [weak self] in
       guard let self = self, self.state == .waiting else { return }
       self.connect()
@@ -172,10 +214,13 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     let wasReady = state == .ready
     failAll(KeeperError(code: "not_connected", message: "device disconnected"))
     guard state != .stopped, state != .off else { return }
-    if wasUp {
+    // Disconnected pairs with Connected: a link that dropped during setup
+    // was never reported as connected.
+    if wasUp, connectedEmitted {
       let (reason, code) = DisconnectMapping.reason(error)
       emit(Events.disconnected(deviceId, reason, code: code))
     }
+    connectedEmitted = false
     attempt += 1
     emit(Events.reconnecting(deviceId, attempt: attempt))
     if isReconnecting {
@@ -185,9 +230,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     } else if wasReady {
       connect()
     } else {
-      // The link dropped during setup (for example discovery failed); an
-      // immediate reconnect would loop while the device is in range.
-      connectAfterBackoff()
+      // The link dropped during setup (for example discovery failed).
+      reconnectAfterFailure()
     }
   }
 
@@ -366,6 +410,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     state = .ready
     setupToken += 1
     attempt = 0
+    consecutiveFailures = 0
     if !connectedEmitted {
       connectedEmitted = true
       emit(Events.connected(deviceId))
