@@ -68,23 +68,24 @@ Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edit
 - 5 done: pubspec (0.1.0, description 150 chars, topics, screenshots, `meta` dependency for generated code), README, LICENSE (BSD-3), CHANGELOG, CONTRIBUTING, SECURITY.md, .pubignore, CI (SHA-pinned actions) and publish workflows, ESP32 sketch in tools/.
 - Review pass: `reviewer` and `security-auditor` agents. Fixed: event delivery stopped for good after one failed ack (now retried every 5 s); reconnect loop without backoff when setup failed; API 26-32 notification value race (handler only on API 33+); `keepConnected` right after the last `stop` hit the dying service; headless engine started during UI start-up or after the service stopped; timed-out read/write left the GATT stack busy (now drops the link); restartOnBoot=false sessions not resumed by the UI; permission checked before `startForeground`; iOS write-without-response ordering; orphaned restored peripherals cancelled; duplicate Connected after a service change; queued writes failing slowly; clearLog now rotates the salt and removes the corrupt-session backup; only the newest export is kept (iOS export file protection complete); iOS backup exclusion re-applied every launch; Dart caps on subscriptions (32) and notification strings (256); example no longer prints raw IDs.
 
-## Verification results (last run 2026-10-13, Flutter 3.47.7, Xcode 16.3)
+## Verification results (last run 2026-10-13 after the verification pass, Flutter 3.47.7, Xcode 16.3)
 
 | Check | Result |
 |---|---|
-| `dart format --set-exit-if-changed .` | clean |
-| `flutter analyze` (plugin + example) | 0 issues |
-| `flutter test` (plugin) | 63 passed |
+| `dart format --output=none --set-exit-if-changed .` | clean |
+| `flutter analyze` (plugin + example, `public_member_api_docs` on) | 0 issues |
+| `flutter test` (plugin) | 65 passed |
 | `flutter test` (example) | 19 passed |
-| Kotlin unit tests (`:ble_keeper:testDebugUnitTest`) | 55 passed |
-| XCTest (example RunnerTests, iOS 18.4 simulator) | 31 passed |
-| `flutter build apk --debug` | OK |
-| `flutter build ios --no-codesign` (Swift Package Manager) | OK |
-| CocoaPods build (fresh app with SPM disabled, plugin by path, in a scratch clone) | OK |
-| `flutter pub publish --dry-run` | 0 warnings, 135 KB |
-| pana 0.23.19 | 150/160. Lost 10: screenshot check needs `cwebp`/`gif2webp`/`webpinfo` (not installed here; `brew install webp`). Repository URL warning (placeholder) costs no points yet |
+| Kotlin unit tests (`example/android: ./gradlew :ble_keeper:testDebugUnitTest`) | 70 passed |
+| XCTest (`xcodebuild test`, example RunnerTests, iPad (A16) iOS 18.4 simulator) | 40 passed |
+| `flutter build apk --debug` / `--release` (example) | OK / OK |
+| `flutter build ios --no-codesign` (example, Swift Package Manager) | OK |
+| CocoaPods build (fresh app with SPM disabled, plugin by path, scratch clone) | OK, re-run after the podspec change |
+| Consumer app `../keeper_consumer_test` (README-only setup) | release APK + iOS build OK after 2 README fixes |
+| `flutter pub publish --dry-run` | 0 warnings, 147 KB |
+| pana 0.23.19 | 150/160. Lost 10 only on the screenshot check: pana needs `cwebp`/`gif2webp`/`webpinfo` (not installed here; `brew install webp`). Repository URL now verifies |
 
-Not run: integration tests on a device, the CI workflows on GitHub, any hardware test (see tools/HARDWARE_CHECKLIST.md).
+Not run: the CI workflows on GitHub (incl. the Flutter 3.44.0 matrix entry), integration tests on a device, any hardware test (tools/HARDWARE_CHECKLIST.md), the ESP32 sketch compile.
 
 ## Environment
 
@@ -167,12 +168,13 @@ Not run: integration tests on a device, the CI workflows on GitHub, any hardware
 
 ## Before publishing I must
 
-1. Done: GitHub username `Ahmadhussain0335`, repository https://github.com/Ahmadhussain0335/ble_keeper (remote `origin` added, nothing pushed yet). Push the repository so pana can verify the URL.
+1. Repository: done (`Ahmadhussain0335/ble_keeper`, `main` pushed by you). Push the verification-pass commits from `feat/v0.1.0`.
 2. Decide the final package name and rename before 0.1.0 (checklist in CONTRIBUTING.md). The restore identifier and storage names change with it; renaming after release would orphan existing users' sessions.
-3. Replace `doc/screenshot.png` with a real screenshot.
-4. Install Xcode 26 (iOS 26 device testing) and run the hardware checklist.
-5. Accept Android SDK licences if a build asks for it.
-6. Replace `SECURITY_CONTACT_EMAIL` in SECURITY.md and enable private vulnerability reporting on GitHub.
-7. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
-9. Run CI once on GitHub (macOS job included) after pushing; the workflows were not executed locally.
-10. Enable automated publishing on pub.dev (Admin > Automated publishing > GitHub Actions, repository `Ahmadhussain0335/ble_keeper`, tag pattern `v{{version}}`, required environment `pub.dev`) after the first manual publish, and create the `pub.dev` environment in the GitHub repository settings.
+3. TODO screenshot: `doc/screenshot.png` is a placeholder. Replace it with a real capture of the example app, or remove the `screenshots:` entry from pubspec.yaml. Not invented by me.
+4. TODO security contact: replace `SECURITY_CONTACT_EMAIL` in SECURITY.md (or point only to GitHub private vulnerability reporting) and enable private vulnerability reporting on GitHub. Not invented by me.
+5. Install Xcode 26 (iOS 26 device testing) and run tools/HARDWARE_CHECKLIST.md (tests 1-21); fill the README "Verified on" table.
+6. Compile the ESP32 sketch once on your Arduino-ESP32 3.x core.
+7. Check that the first CI run on GitHub passes, including the Flutter 3.44.0 matrix entry and the macOS XCTest job.
+8. Accept Android SDK licences if a build asks for it.
+9. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
+10. After the first manual publish: create the GitHub environment `pub.dev`, then on pub.dev > Admin > Automated publishing enable GitHub Actions for `Ahmadhussain0335/ble_keeper`, tag pattern `v{{version}}`, required environment `pub.dev`.
