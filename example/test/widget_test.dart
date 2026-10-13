@@ -1,37 +1,33 @@
-import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:ble_keeper/ble_keeper.dart';
 import 'package:ble_keeper/ble_keeper_platform_interface.dart';
 import 'package:ble_keeper_example/main.dart';
+import 'package:ble_keeper_example/src/device_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class FakePlatform extends BleKeeperPlatform {
-  final controller = StreamController<KeeperEvent>.broadcast();
-
-  @override
-  Stream<KeeperEvent> get events => controller.stream;
-}
+import 'fake_platform.dart';
 
 void main() {
-  testWidgets('shows the counter from Data events', (tester) async {
+  testWidgets('shows counter and missed values from events', (tester) async {
     final fake = FakePlatform();
     BleKeeperPlatform.instance = fake;
+    final controller = DeviceController(BleKeeper.instance);
 
-    await tester.pumpWidget(const MaterialApp(home: CounterPage()));
+    await tester.pumpWidget(ExampleApp(controller: controller));
     expect(find.text('Counter: -'), findsOneWidget);
 
-    fake.controller.add(
-      Data(
-        deviceId: 'AA:BB:CC:DD:EE:FF',
-        characteristic: counterChar,
-        bytes: Uint8List.fromList([42, 0, 0, 0]),
-        timestamp: DateTime(2026),
-      ),
-    );
+    await tester.enterText(find.byType(TextField), 'AA:BB:CC:DD:EE:FF');
+    await tester.tap(find.text('Keep connected'));
+    await tester.pump();
+    expect(fake.calls, ['keep AA:BB:CC:DD:EE:FF']);
+
+    fake.controller
+      ..add(counterData(41))
+      ..add(counterData(44));
     await tester.pump();
 
-    expect(find.text('Counter: 42'), findsOneWidget);
+    expect(find.text('Counter: 44'), findsOneWidget);
+    expect(find.textContaining('Missed 2'), findsOneWidget);
+    expect(find.text('State: connected'), findsOneWidget);
   });
 }

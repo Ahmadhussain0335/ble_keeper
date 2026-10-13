@@ -1,87 +1,37 @@
-import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:ble_keeper/ble_keeper.dart';
 import 'package:flutter/material.dart';
 
-final counterChar = CharacteristicRef(
-  serviceUuid: '12345678-1234-1234-1234-1234567890ab',
-  characteristicUuid: '12345678-1234-1234-1234-1234567890ac',
-);
+import 'src/device_controller.dart';
+import 'src/home_page.dart';
 
-void main() => runApp(const MaterialApp(home: CounterPage()));
-
-class CounterPage extends StatefulWidget {
-  const CounterPage({super.key});
-
-  @override
-  State<CounterPage> createState() => _CounterPageState();
+/// Runs in a background isolate when the OS restarted the app without UI.
+/// Keep it short; on iOS the app has only a few seconds per Bluetooth event.
+@pragma('vm:entry-point')
+void backgroundHandler(KeeperEvent event) {
+  debugPrint('ble_keeper background: $event');
 }
 
-class _CounterPageState extends State<CounterPage> {
-  final _deviceId = TextEditingController();
-  StreamSubscription<KeeperEvent>? _sub;
-  String _status = 'idle';
-  int? _counter;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Register on every start: callback handles change when the app is updated.
+  await BleKeeper.instance.registerBackgroundHandler(backgroundHandler);
+  runApp(ExampleApp(controller: DeviceController(BleKeeper.instance)));
+}
 
-  @override
-  void initState() {
-    super.initState();
-    _sub = BleKeeper.instance.events.listen(_onEvent);
-  }
+class ExampleApp extends StatelessWidget {
+  const ExampleApp({super.key, required this.controller});
 
-  void _onEvent(KeeperEvent e) {
-    setState(() {
-      if (e is Data && e.bytes.length >= 4) {
-        _counter = ByteData.sublistView(e.bytes).getUint32(0, Endian.little);
-      } else if (e is! Data) {
-        _status = e.toString();
-      }
-    });
-  }
-
-  Future<void> _keep() async {
-    try {
-      await BleKeeper.instance.keepConnected(
-        deviceId: _deviceId.text,
-        subscribe: [counterChar],
-      );
-    } on Object catch (e) {
-      setState(() => _status = 'error: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    _deviceId.dispose();
-    super.dispose();
-  }
+  final DeviceController controller;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('ble_keeper')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _deviceId,
-              decoration: const InputDecoration(labelText: 'Device ID'),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(onPressed: _keep, child: const Text('Keep connected')),
-            const SizedBox(height: 24),
-            Text(
-              'Counter: ${_counter ?? '-'}',
-              style: const TextStyle(fontSize: 32),
-            ),
-            Text(_status),
-          ],
-        ),
+    return MaterialApp(
+      title: 'ble_keeper example',
+      theme: ThemeData(
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.light,
       ),
+      home: HomePage(controller: controller),
     );
   }
 }
