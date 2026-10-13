@@ -24,6 +24,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Imported by the Pigeon-generated lib/src/messages.g.dart.
+  meta: ^1.18.0
   plugin_platform_interface: ^2.1.0
 
 dev_dependencies:
