@@ -1,6 +1,7 @@
 package com.ahmadhussain.ble_keeper.core
 
 import com.ahmadhussain.ble_keeper.PEvent
+import com.ahmadhussain.ble_keeper.PEventType
 
 /**
  * Buffers events and delivers them to one Dart receiver at a time.
@@ -13,7 +14,14 @@ import com.ahmadhussain.ble_keeper.PEvent
  * acknowledges it; Dart drops duplicates by [PEvent.seq].
  */
 internal class EventHub(
+    /** Maximum buffered Data events; the oldest Data event is dropped first. */
     private val capacity: Int = 1000,
+    /**
+     * Maximum buffered non-Data events (state changes, Blocked,
+     * RestoredAfterKill). They are rare and never evicted to make room for
+     * Data; only this separate cap bounds them.
+     */
+    private val controlCapacity: Int = 1000,
     private val maxBatch: Int = 100,
     private val onPublished: (PEvent) -> Unit = {},
     private val onDropped: (count: Int) -> Unit = {},
@@ -53,13 +61,24 @@ internal class EventHub(
         val stamped = event.copy(seq = nextSeq++)
         onPublished(stamped)
         buffer.addLast(stamped)
-        var dropped = 0
-        while (buffer.size > capacity) {
-            buffer.removeFirst()
-            dropped++
-        }
+        val dropped = evictOldest(isData = true, max = capacity) + evictOldest(isData = false, max = controlCapacity)
         if (dropped > 0) onDropped(dropped)
         drain()
+    }
+
+    /** Removes the oldest events of one class until at most [max] remain. */
+    private fun evictOldest(isData: Boolean, max: Int): Int {
+        var count = buffer.count { (it.type == PEventType.DATA) == isData }
+        var dropped = 0
+        val it = buffer.iterator()
+        while (count > max && it.hasNext()) {
+            if ((it.next().type == PEventType.DATA) == isData) {
+                it.remove()
+                count--
+                dropped++
+            }
+        }
+        return dropped
     }
 
     fun attach(sink: Sink) {

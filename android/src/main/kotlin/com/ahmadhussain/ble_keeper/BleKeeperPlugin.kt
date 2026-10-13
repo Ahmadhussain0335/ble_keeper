@@ -109,6 +109,7 @@ class BleKeeperPlugin : FlutterPlugin, ActivityAware, BleKeeperHostApi {
 
     override suspend fun exportLog(): String = guard {
         val rt = rt()
+        rt.flushLogSummaries() // main thread (Pigeon runs host calls on Dispatchers.Main)
         withContext(Dispatchers.IO) { rt.exportLog().absolutePath }
     }
 

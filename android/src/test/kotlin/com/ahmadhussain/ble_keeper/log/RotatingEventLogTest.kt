@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 
 internal class RotatingEventLogTest {
     private val dir: File = Files.createTempDirectory("log").toFile()
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newSingleThreadScheduledExecutor()
     private val log = RotatingEventLog(dir, "events.log", maxBytes = 20, executor = executor)
 
     @AfterTest
@@ -20,7 +20,7 @@ internal class RotatingEventLogTest {
         dir.deleteRecursively()
     }
 
-    private fun flush() = executor.submit {}.get()
+    private fun flush() = log.flush()
 
     @Test
     fun append_writesOneLinePerCall() {
@@ -39,6 +39,17 @@ internal class RotatingEventLogTest {
 
         assertEquals("abcdefghij\n", File(dir, "events.log.1").readText())
         assertEquals("ABCDEFGHIJ\n", File(dir, "events.log").readText())
+    }
+
+    @Test
+    fun lines_areBufferedUntilFlush_andFlushedAutomatically() {
+        val delayed = RotatingEventLog(dir, "buffered.log", maxBytes = 1_000, executor = executor, flushDelayMs = 50)
+        delayed.append("x")
+        executor.submit {}.get()
+        assertFalse(File(dir, "buffered.log").readText().contains("x"))
+        Thread.sleep(200)
+        executor.submit {}.get()
+        assertEquals("x\n", File(dir, "buffered.log").readText())
     }
 
     @Test

@@ -24,6 +24,8 @@ internal class EventHubTest {
 
     private fun event() = PEvent(seq = 0, timestampMs = 1, type = PEventType.CONNECTED, deviceId = "A")
 
+    private fun dataEvent() = PEvent(seq = 0, timestampMs = 1, type = PEventType.DATA, deviceId = "A")
+
     @Test
     fun publish_assignsIncreasingSeq_andBuffersWithoutSink() {
         val published = mutableListOf<Long>()
@@ -124,10 +126,10 @@ internal class EventHubTest {
     }
 
     @Test
-    fun capacity_dropsOldest_andReportsCount() {
+    fun capacity_dropsOldestData_andReportsCount() {
         var dropped = 0
         val hub = EventHub(capacity = 3, onDropped = { dropped += it })
-        repeat(5) { hub.publish(event()) }
+        repeat(5) { hub.publish(dataEvent()) }
 
         assertEquals(3, hub.pending)
         assertEquals(2, dropped)
@@ -141,13 +143,40 @@ internal class EventHubTest {
         val hub = EventHub(capacity = 2, maxBatch = 2)
         val sink = FakeSink(isBackground = false)
         hub.attach(sink)
-        hub.publish(event()) // seq 1, in flight
-        hub.publish(event()) // seq 2
-        hub.publish(event()) // seq 3, drops seq 1 from the buffer
+        hub.publish(dataEvent()) // seq 1, in flight
+        hub.publish(dataEvent()) // seq 2
+        hub.publish(dataEvent()) // seq 3, drops seq 1 from the buffer
 
         sink.ack()
 
         assertEquals(listOf(2L, 3L), sink.batches[1].map { it.seq })
+    }
+
+    @Test
+    fun capacity_neverEvictsNonDataEvents() {
+        var dropped = 0
+        val hub = EventHub(capacity = 2, onDropped = { dropped += it })
+        hub.publish(PEvent(seq = 0, timestampMs = 1, type = PEventType.RESTORED_AFTER_KILL))
+        repeat(5) { hub.publish(PEvent(seq = 0, timestampMs = 1, type = PEventType.DATA, deviceId = "A")) }
+        hub.publish(PEvent(seq = 0, timestampMs = 1, type = PEventType.BLOCKED))
+
+        val sink = FakeSink(isBackground = false)
+        hub.attach(sink)
+
+        val types = sink.batches.single().map { it.type }
+        assertEquals(
+            listOf(PEventType.RESTORED_AFTER_KILL, PEventType.DATA, PEventType.DATA, PEventType.BLOCKED),
+            types,
+        )
+        assertEquals(listOf(1L, 5L, 6L, 7L), sink.batches.single().map { it.seq })
+        assertEquals(3, dropped)
+    }
+
+    @Test
+    fun controlCapacity_boundsNonDataEvents() {
+        val hub = EventHub(capacity = 10, controlCapacity = 2)
+        repeat(4) { hub.publish(event()) }
+        assertEquals(2, hub.pending)
     }
 
     @Test

@@ -15,8 +15,10 @@ import android.os.Looper
 import com.ahmadhussain.ble_keeper.KeeperConstants
 import com.ahmadhussain.ble_keeper.PBlockedReason
 import com.ahmadhussain.ble_keeper.PEvent
+import com.ahmadhussain.ble_keeper.PEventType
 import com.ahmadhussain.ble_keeper.gatt.GattManager
 import com.ahmadhussain.ble_keeper.headless.HeadlessEngineRunner
+import com.ahmadhussain.ble_keeper.log.DataAggregator
 import com.ahmadhussain.ble_keeper.log.LogFormatter
 import com.ahmadhussain.ble_keeper.log.Pseudonymizer
 import com.ahmadhussain.ble_keeper.log.RotatingEventLog
@@ -51,12 +53,24 @@ internal class KeeperRuntime private constructor(context: Context) {
         File(dir, KeeperConstants.LOG_DIR),
         KeeperConstants.LOG_FILE,
         KeeperConstants.LOG_MAX_BYTES,
-        Executors.newSingleThreadExecutor { r -> Thread(r, "ble-keeper-log") },
+        Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "ble-keeper-log") },
     )
 
+    // Data events are summarised per minute; everything else is one line.
+    // Main thread only.
+    private val dataAggregator = DataAggregator()
+    private var droppedSinceLastNote = 0
+    private var logTickScheduled = false
+
     val hub = EventHub(
-        onPublished = { log.append(formatter.format(it)) },
-        onDropped = { n -> note(null, "dropped $n undelivered events (buffer full)") },
+        onPublished = { e ->
+            if (e.type == PEventType.DATA) dataAggregator.add(e) else log.append(formatter.format(e))
+            scheduleLogTick()
+        },
+        onDropped = { n ->
+            droppedSinceLastNote += n
+            scheduleLogTick()
+        },
     )
     val headless = HeadlessEngineRunner(this)
 
@@ -195,6 +209,26 @@ internal class KeeperRuntime private constructor(context: Context) {
 
     // Log export (call off the main thread).
 
+    /** Writes pending Data summaries and the drop counter. Main thread only. */
+    fun flushLogSummaries() {
+        val now = System.currentTimeMillis()
+        dataAggregator.drain(now, formatter).forEach(log::append)
+        if (droppedSinceLastNote > 0) {
+            note(null, "dropped $droppedSinceLastNote undelivered Data events (buffer full)")
+            droppedSinceLastNote = 0
+        }
+    }
+
+    private fun scheduleLogTick() {
+        if (logTickScheduled) return
+        logTickScheduled = true
+        mainHandler.postDelayed({
+            logTickScheduled = false
+            flushLogSummaries()
+        }, LOG_SUMMARY_INTERVAL_MS)
+    }
+
+    /** Call [flushLogSummaries] on the main thread first. */
     fun exportLog(): File {
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
         return log.export(File(exportDir, "ble_keeper_events_$stamp.log"))
@@ -241,6 +275,7 @@ internal class KeeperRuntime private constructor(context: Context) {
 
     companion object {
         private const val DELIVERY_RETRY_MS = 5_000L
+        private const val LOG_SUMMARY_INTERVAL_MS = 60_000L
 
         @Volatile
         private var instance: KeeperRuntime? = null

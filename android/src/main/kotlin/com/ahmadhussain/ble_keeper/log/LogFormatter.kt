@@ -12,9 +12,11 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * Formats one event per line:
+ * Formats one line per event, except Data events, which are summarised per
+ * device and characteristic each minute (see [dataSummary]):
  *
- *     2026-10-13T09:12:33.123Z #42 data device=dev-3f2a91c4 char=...90ac len=4
+ *     2026-10-13T09:12:33.123Z #42 disconnected device=dev-3f2a91c4 reason=linkLoss code=8
+ *     2026-10-13T09:13:00.000Z #43-102 data device=dev-3f2a91c4 char=...90ac count=60 bytes=240
  *
  * The iOS implementation produces the same format; keep them in sync.
  *
@@ -49,6 +51,19 @@ internal class LogFormatter(private val pseudonymizer: Pseudonymizer?) {
         }
         return sb.toString()
     }
+
+    /** One line for [count] Data events with sequence numbers [firstSeq]..[lastSeq]. */
+    fun dataSummary(
+        timestampMs: Long,
+        deviceId: String,
+        characteristic: String,
+        count: Int,
+        bytes: Long,
+        firstSeq: Long,
+        lastSeq: Long,
+    ): String =
+        "${iso(timestampMs)} #$firstSeq-$lastSeq data device=${deviceLabel(deviceId)} " +
+            "char=$characteristic count=$count bytes=$bytes"
 
     /** A diagnostic line that is not an event, for example a warning. */
     fun note(timestampMs: Long, level: String, text: String): String =

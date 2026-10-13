@@ -96,6 +96,14 @@ internal class LogFormatterTest {
     }
 
     @Test
+    fun dataSummary() {
+        assertEquals(
+            "2025-10-13T09:32:33.123Z #5-64 data device=$device char=12345678-1234-1234-1234-1234567890ac count=60 bytes=240",
+            raw.dataSummary(ts, device, "12345678-1234-1234-1234-1234567890ac", 60, 240, 5, 64),
+        )
+    }
+
+    @Test
     fun note_isQuoted() {
         assertEquals("2025-10-13T09:32:33.123Z note \"a b\"", raw.note(ts, "note", "a b"))
     }
