@@ -65,24 +65,26 @@ class KeeperService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val all = runtime.sessions.load()
-        // Android 14 throws SecurityException from startForeground for a
-        // connectedDevice service without BLUETOOTH_CONNECT. Check first: the
-        // permission may have been revoked since the app last ran (sticky
-        // restart, boot).
-        val missing = PermissionChecker.missingForConnect(Build.VERSION.SDK_INT, runtime::isGranted)
-        if (missing.isNotEmpty()) {
-            missing.forEach { runtime.publish(Events.blocked(PBlockedReason.PERMISSION_MISSING, null, it)) }
-            stopNow()
-            return START_NOT_STICKY
-        }
-        // After startForegroundService the app has a few seconds to call
-        // startForeground, or the system stops it with an exception. Call it
-        // first, even when the service is about to stop again.
+        // After startForegroundService the app must call startForeground
+        // within a few seconds, even if it stops right away; stopping first
+        // raises "did not then call Service.startForeground()". So it is
+        // always the first call. On Android 14+ it throws SecurityException
+        // for a connectedDevice service without BLUETOOTH_CONNECT; that case
+        // cannot call startForeground at all and is reported and stopped.
         try {
             startForegroundNow(all)
         } catch (e: Exception) {
             runtime.reportStartFailure(e)
             stopSelf()
+            return START_NOT_STICKY
+        }
+        // Below Android 14 startForeground succeeds without the permission,
+        // but GATT calls would fail; report and stop now that the
+        // foreground requirement is met.
+        val missing = PermissionChecker.missingForConnect(Build.VERSION.SDK_INT, runtime::isGranted)
+        if (missing.isNotEmpty()) {
+            missing.forEach { runtime.publish(Events.blocked(PBlockedReason.PERMISSION_MISSING, null, it)) }
+            stopNow()
             return START_NOT_STICKY
         }
         val restored = intent == null || intent.action == KeeperConstants.ACTION_BOOT
