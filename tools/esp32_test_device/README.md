@@ -64,7 +64,12 @@ application payloads.
 
 ## Compatibility note
 
-Written against the Arduino-ESP32 core 3.x built-in BLE library. The library
-API has changed between minor versions (3.3 added a NimBLE backend). If the
-sketch does not compile on your core version, `BLE2902` and
-`BLEServer::getConnId()` are the most likely calls to need adjusting.
+Written for the Arduino-ESP32 core 3.x built-in BLE library. The calls it uses
+were checked against the 3.3.x library source (latest release at the time:
+3.3.12): `BLECharacteristic::getValue()` returns `String` (3.x), and
+`BLEServer::getConnId()` and `disconnect(connId)` exist. `BLE2902` is only
+added with the Bluedroid backend; NimBLE creates the CCCD itself.
+
+**Not compiled yet:** the sketch has not been built on a machine with the
+ESP32 core installed. If it fails on your core version, report the error;
+the 2.x core (where `getValue()` returned `std::string`) is not supported.

@@ -9,12 +9,15 @@
 // "reboot". Production firmware should use LE Secure Connections bonding and
 // authenticated writes.
 //
-// Target: Arduino-ESP32 core 3.x, built-in BLE library.
+// Target: Arduino-ESP32 core 3.x (API checked against 3.3.x), built-in BLE
+// library with either the Bluedroid (default on ESP32) or NimBLE backend.
 
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
+#if defined(CONFIG_BLUEDROID_ENABLED)
 #include <BLE2902.h>
+#endif
 
 static const char *DEVICE_NAME = "BLE-Test-Device";
 static const char *SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
@@ -78,7 +81,11 @@ void setup() {
 
   notifyChar = service->createCharacteristic(
       NOTIFY_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+#if defined(CONFIG_BLUEDROID_ENABLED)
+  // Bluedroid needs the CCCD added by hand; NimBLE adds it automatically for
+  // characteristics with notify/indicate (BLE2902 is deprecated there).
   notifyChar->addDescriptor(new BLE2902());
+#endif
 
   BLECharacteristic *commandChar = service->createCharacteristic(
       COMMAND_UUID, BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
