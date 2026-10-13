@@ -58,7 +58,7 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
     required List<CharacteristicRef> subscribe,
     AndroidOptions? android,
     IosOptions? ios,
-  }) {
+  }) async {
     if (deviceId.trim().isEmpty) {
       throw ArgumentError.value(deviceId, 'deviceId', 'must not be empty');
     }
@@ -104,7 +104,7 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
               enableAutoReconnect: ios.enableAutoReconnect,
             ),
     );
-    return guardPlatform(() => _host.keepConnected(request));
+    await guardPlatform(() => _host.keepConnected(request));
   }
 
   @override
@@ -131,7 +131,7 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
       guardPlatform(() => _host.read(deviceId.trim(), toWire(characteristic)));
 
   @override
-  Future<void> registerBackgroundHandler(BackgroundHandler handler) {
+  Future<void> registerBackgroundHandler(BackgroundHandler handler) async {
     final handlerHandle = _handleOf(handler);
     if (handlerHandle == null) {
       throw ArgumentError.value(
@@ -145,7 +145,7 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
     if (dispatcherHandle == null) {
       throw StateError('ble_keeper background dispatcher has no handle');
     }
-    return guardPlatform(
+    await guardPlatform(
       () => _host.registerBackgroundHandler(
         dispatcherHandle.toRawHandle(),
         handlerHandle.toRawHandle(),

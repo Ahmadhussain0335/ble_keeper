@@ -17,20 +17,36 @@ Future<void> bleKeeperBackgroundMain() async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
 
-  final host = BleKeeperHostApi();
-  final raw = await host.backgroundHandlerHandle();
-  final handler = raw == null
-      ? null
-      : PluginUtilities.getCallbackFromHandle(
-          CallbackHandle.fromRawHandle(raw),
-        );
-  if (handler == null) {
-    // Native reports Blocked(misconfigured) when the engine never attaches.
-    debugPrint('ble_keeper: background handler not found; not attaching');
-    return;
+  // Any failure here just means "not attached"; native then reports
+  // Blocked(misconfigured) when the engine does not attach in time.
+  try {
+    final host = BleKeeperHostApi();
+    final raw = await host.backgroundHandlerHandle();
+    final handler = raw == null
+        ? null
+        : PluginUtilities.getCallbackFromHandle(
+            CallbackHandle.fromRawHandle(raw),
+          );
+    if (handler == null) {
+      debugPrint(
+        'ble_keeper: background handler not found. It must be a top-level '
+        "or static function annotated with @pragma('vm:entry-point'), "
+        'registered with registerBackgroundHandler on every app start.',
+      );
+      return;
+    }
+    BleKeeperEventApi.setUp(BackgroundEventReceiver(handler));
+    await host.attach(true);
+  } catch (error, stack) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stack,
+        library: 'ble_keeper',
+        context: ErrorDescription('while starting the background dispatcher'),
+      ),
+    );
   }
-  BleKeeperEventApi.setUp(BackgroundEventReceiver(handler));
-  await host.attach(true);
 }
 
 /// Delivers events to the user's background handler, one at a time.

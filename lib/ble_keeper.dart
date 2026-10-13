@@ -45,8 +45,10 @@ class BleKeeper {
   /// Android 12 and later do not allow starting a foreground service from the
   /// background.
   ///
-  /// Throws [ArgumentError] for an empty [deviceId] or [subscribe] list and
-  /// [BleKeeperException] when the platform rejects the request.
+  /// The returned future completes with an [ArgumentError] for an empty
+  /// [deviceId] or [subscribe] list, more than 32 subscriptions or notification
+  /// texts over 256 characters, and with a [BleKeeperException] when the
+  /// platform rejects the request.
   Future<void> keepConnected({
     required String deviceId,
     required List<CharacteristicRef> subscribe,
@@ -103,7 +105,8 @@ class BleKeeper {
   /// the next batch. Keep the work short: iOS gives a background app only a
   /// few seconds per Bluetooth event.
   ///
-  /// Throws [ArgumentError] when [handler] is a closure or instance method.
+  /// The returned future completes with an [ArgumentError] when [handler] is a
+  /// closure or instance method.
   Future<void> registerBackgroundHandler(BackgroundHandler handler) =>
       _platform.registerBackgroundHandler(handler);
 

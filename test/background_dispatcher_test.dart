@@ -6,26 +6,26 @@ import 'package:ble_keeper/src/messages.g.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-PEvent _connected(int seq) => PEvent(
+PEvent _connected(int seq, [String deviceId = 'id']) => PEvent(
   seq: seq,
   timestampMs: 0,
   type: PEventType.connected,
-  deviceId: 'id',
+  deviceId: deviceId,
 );
 
 void main() {
   test(
     'calls the handler once per event, in order, without duplicates',
     () async {
-      final received = <int>[];
+      final received = <String>[];
       final receiver = BackgroundEventReceiver(
-        (KeeperEvent e) => received.add(e.timestamp.millisecondsSinceEpoch),
+        (KeeperEvent e) => received.add((e as Connected).deviceId),
       );
 
-      await receiver.onEvents([_connected(1), _connected(2)]);
-      await receiver.onEvents([_connected(2)]);
+      await receiver.onEvents([_connected(1, 'a'), _connected(2, 'b')]);
+      await receiver.onEvents([_connected(2, 'b'), _connected(3, 'c')]);
 
-      expect(received, hasLength(2));
+      expect(received, ['a', 'b', 'c']);
     },
   );
 
