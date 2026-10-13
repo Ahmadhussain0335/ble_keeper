@@ -4,17 +4,19 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ble_keeper'
-  s.version          = '0.0.1'
-  s.summary          = 'A new Flutter plugin project.'
+  s.version          = '0.1.0'
+  s.summary          = 'Keeps a BLE peripheral connected in the background on iOS.'
   s.description      = <<-DESC
-A new Flutter plugin project.
+Owns the Core Bluetooth connection with state restoration so it survives the
+Flutter UI, system termination and reboots.
                        DESC
-  s.homepage         = 'http://example.com'
-  s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.homepage         = 'https://github.com/YOUR_GITHUB_USERNAME/ble_keeper'
+  s.license          = { :type => 'BSD-3-Clause', :file => '../LICENSE' }
+  s.author           = { 'Ahmad Hussain' => 'https://github.com/YOUR_GITHUB_USERNAME' }
   s.source           = { :path => '.' }
   s.source_files = 'ble_keeper/Sources/ble_keeper/**/*'
   s.dependency 'Flutter'
+  s.frameworks = 'CoreBluetooth'
   s.platform = :ios, '15.0'
 
   # Flutter.framework does not contain a i386 slice.

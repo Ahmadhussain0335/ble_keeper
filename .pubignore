@@ -1,0 +1,34 @@
+# .pubignore replaces .gitignore for `dart pub publish`, so repeat the
+# generated and local paths here.
+.dart_tool/
+.idea/
+.vscode/
+build/
+**/build/
+*.iml
+.DS_Store
+local.properties
+**/local.properties
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# iOS build artefacts
+**/Pods/
+**/.build/
+**/.swiftpm/
+**/DerivedData/
+**/xcuserdata/
+**/Flutter/ephemeral/
+**/Flutter/Generated.xcconfig
+**/Flutter/flutter_export_environment.sh
+
+# Android build artefacts
+**/.gradle/
+**/.cxx/
+
+# Not part of the package
+.github/
+tools/
+PROGRESS.md
+coverage/
