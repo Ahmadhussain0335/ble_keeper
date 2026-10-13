@@ -21,22 +21,24 @@ Native unit tests:
 (cd example && flutter build apk --config-only)
 (cd example/android && ./gradlew :ble_keeper:testDebugUnitTest)
 
-# iOS (XCTest), on macOS with Xcode:
-(cd example && flutter build ios --no-codesign --debug)
+# iOS (XCTest), on macOS with Xcode. Pick any installed simulator
+# (`xcrun simctl list devices available`):
+(cd example && flutter build ios --simulator --debug)
 xcodebuild test -workspace example/ios/Runner.xcworkspace -scheme Runner \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,OS=18.4,name=iPad (A16)'
 ```
 
 Build the example on both platforms:
 
 ```sh
-(cd example && flutter build apk --debug)
+(cd example && flutter build apk --debug && flutter build apk --release)
 (cd example && flutter build ios --no-codesign)
 ```
 
 Behaviour that depends on real hardware (reconnects, OS kills, reboots)
 cannot be unit-tested. Use the ESP32 test device in `tools/esp32_test_device/`
-and the checklist in the README.
+and the checklist in `tools/HARDWARE_CHECKLIST.md`; record results in the
+README "Verified on" table.
 
 ## Dart / native contract (Pigeon)
 
@@ -99,6 +101,20 @@ Find leftovers with `grep -rni "ble_keeper\|blekeeper" --exclude-dir=build --exc
 Rename before the first release. `KeeperConstants` values (storage
 directories, iOS restore identifier, notification channel) are persisted on
 users' devices; changing them later orphans existing sessions.
+
+## Releasing
+
+1. Update `version` in `pubspec.yaml` and `ios/ble_keeper.podspec`, and
+   `CHANGELOG.md`.
+2. Merge to `main` with CI green.
+3. The first release (0.1.0) is published manually: `flutter pub publish`.
+4. Later releases: push a tag `vX.Y.Z`. `.github/workflows/publish.yml` uses
+   the reusable `dart-lang/setup-dart` publish workflow (it installs Dart for
+   the OIDC token and Flutter to resolve the plugin) in the GitHub environment
+   `pub.dev`. One-time setup: create that environment in the repository
+   settings, and on pub.dev > Admin > Automated publishing enable GitHub
+   Actions for `Ahmadhussain0335/ble_keeper` with tag pattern `v{{version}}`
+   and required environment `pub.dev`.
 
 ## Commit messages
 

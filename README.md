@@ -26,7 +26,11 @@ a background handler in a headless Flutter engine.
 It is not a general BLE library: no scanning, no GATT server, no OTA. Use it
 next to a scanning plugin.
 
-## What the OS allows
+## Expected behavior (hardware verification in progress)
+
+The tables below describe what the implementation is designed to do, based on
+the platform documentation. They are **not yet verified on real devices**; see
+"Verified on" below and `tools/HARDWARE_CHECKLIST.md` in the repository.
 
 Android:
 
@@ -42,33 +46,51 @@ Android:
 | Bluetooth turned off | Paused, reconnects when turned on | `Disconnected(bluetoothOff)`, `Blocked(BluetoothOff)` |
 | `BLUETOOTH_CONNECT` denied (Android 12+) | No | `Blocked(PermissionMissing)` |
 | `keepConnected` called while the app is in the background | No (Android 12+ background start restriction) | `Blocked(ForegroundStartNotAllowed)` |
+| Device absent for a long time | Keeps waiting at low power (`autoConnect` after the first minutes) | `Reconnecting` once per attempt |
 
 Restart timing after a system kill and boot behaviour on Android 15+ depend on
-the vendor build. Verify on the devices you support (the example app and the
-ESP32 sketch are made for that).
+the vendor build.
 
-iOS (per Apple TN3115, "Conditions under which Bluetooth State Restoration
-will relaunch an app"):
+iOS (per Apple TN3115, "Bluetooth State Restoration app relaunch rules",
+updated for iOS 26 on 2025-09-15):
 
-| Situation | Relaunched by state restoration? | What you get |
-|---|---|---|
-| App suspended in the background | Connection kept by iOS | Events as usual |
-| Terminated by the system (memory) | Yes | `RestoredAfterKill` |
-| Crash | Yes | `RestoredAfterKill` |
-| Reboot | Yes, after the first unlock, when the peripheral reconnects | `RestoredAfterKill` |
-| **User force-quit** (swipe up in the app switcher) | **No** | `Blocked(UserForceQuit)` on the next launch, best effort |
-| Bluetooth turned off in Settings | No | `Blocked(BluetoothOff)` while off |
-| Bluetooth permission denied | No | `Blocked(PermissionMissing('bluetooth'))` |
-| App update | No | Reconnects when the user opens the app |
+| Situation | Relaunched, iOS 15-18 | Relaunched, iOS 26+ | What you get |
+|---|---|---|---|
+| App suspended in the background | Not needed: iOS keeps the connection and wakes the app | same | Events as usual |
+| Terminated by the system (memory) | Yes | Yes | `RestoredAfterKill` |
+| Crash | Yes | Yes | `RestoredAfterKill` |
+| Reboot | Yes, after the first unlock, when a Bluetooth event occurs | same | `RestoredAfterKill` |
+| **User force-quit** (swipe up in the app switcher) | **No** | **No** (only AccessorySetupKit apps) | `Blocked(UserForceQuit)` on the next launch, best effort |
+| Bluetooth turned off in **Settings** | No | No | `Blocked(BluetoothOff)` while off |
+| Bluetooth toggled in **Control Center** | Yes | **No** (only AccessorySetupKit apps) | Reconnects when the user opens the app |
+| **Airplane Mode** toggled | Yes, if Airplane Mode is configured not to turn Bluetooth off | **No** (only AccessorySetupKit apps) | Reconnects when the user opens the app |
+| Bluetooth permission denied | No | No | `Blocked(PermissionMissing('bluetooth'))` |
+| App update | No | No | Reconnects when the user opens the app |
+
+ble_keeper does not use AccessorySetupKit yet (see Roadmap), so on iOS 26 the
+"only AccessorySetupKit apps" rows mean no relaunch.
 
 iOS does not tell an app that the user force-quit it. ble_keeper infers it on
 the next launch: connections were being kept, the app was not relaunched by
-state restoration, and either `applicationWillTerminate` ran (strong signal)
-or nothing else explains it (weak signal, flagged "best effort" in the
-event detail). False positives: Bluetooth turned off in Settings while the app
-was suspended, a reboot after which the peripheral never came in range before
-the user opened the app, or a system termination with no Bluetooth event
-before the user opened the app.
+state restoration, and either `applicationWillTerminate` ran or nothing else
+explains it. Both are guesses and the event detail says "best effort". False
+positives:
+
+- `applicationWillTerminate` also runs when the system terminates an app that
+  was running (not suspended) in the background.
+- Bluetooth turned off in Settings, or (iOS 26) toggled in Control Center or
+  by Airplane Mode, while the app was suspended.
+- A reboot after which the peripheral never came in range before the user
+  opened the app.
+- A system termination with no Bluetooth event before the user opened the app.
+
+### Verified on
+
+Filled in from `tools/HARDWARE_CHECKLIST.md` runs. Nothing is verified yet.
+
+| Device | OS version | Test IDs passed | Date |
+|---|---|---|---|
+| | | | |
 
 ## Install
 
@@ -96,9 +118,26 @@ Your scanning plugin declares what it needs.
 
 The plugin does not request runtime permissions. Request
 `BLUETOOTH_CONNECT` (and `POST_NOTIFICATIONS` on Android 13+) before calling
-`keepConnected`, for example with permission_handler. If
-`POST_NOTIFICATIONS` is denied the service still runs; Android only hides
-its notification.
+`keepConnected`. If `POST_NOTIFICATIONS` is denied the service still runs;
+Android only hides its notification. For example with
+[permission_handler](https://pub.dev/packages/permission_handler):
+
+```dart
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
+
+Future<bool> ensureBlePermissions() async {
+  if (!Platform.isAndroid) return true; // iOS shows its own prompt.
+  final results = await [
+    Permission.bluetoothConnect, // Android 12+; granted below 12
+    Permission.notification, // Android 13+; optional
+  ].request();
+  return results[Permission.bluetoothConnect]?.isGranted ?? false;
+}
+```
+
+If you also scan (with another plugin), request `Permission.bluetoothScan` and,
+on Android 11 and lower, location, as that plugin documents.
 
 Call `keepConnected` while your app is visible. Android 12 and later do not
 allow starting a foreground service from the background; you get
@@ -114,8 +153,8 @@ const AndroidOptions(
 )
 ```
 
-The icon is looked up by name, so resource shrinking may remove it. Keep it
-with `res/raw/keep.xml`:
+The icon is looked up by name, so resource shrinking may remove it in release
+builds. Keep it with `android/app/src/main/res/raw/keep.xml`:
 
 ```xml
 <resources xmlns:tools="http://schemas.android.com/tools"
@@ -132,12 +171,16 @@ Declare `connectedDevice` and describe the user-visible feature (for example
 "keeps the heart-rate strap connected during a workout").
 
 **Opt out of boot restart.** Set `restartOnBoot: false`, or remove the
-permission in your manifest:
+permission in your manifest (add
+`xmlns:tools="http://schemas.android.com/tools"` to its `<manifest>` tag):
 
 ```xml
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"
     tools:node="remove" />
 ```
+
+**Requirements.** Flutter 3.44 or later (built-in Kotlin support), minSdk 24.
+The plugin compiles against SDK 36.
 
 ## iOS setup
 
@@ -160,7 +203,10 @@ you get `Blocked(Misconfigured(...))`.
 **AppDelegate.** State restoration requires the central manager to be created
 during `application(_:didFinishLaunchingWithOptions:)`. When iOS relaunches
 the app in the background, no scene and no Flutter UI engine is created, so
-normal plugin registration does not happen. Add one call before `super`:
+normal plugin registration does not happen. Add one call before `super`.
+
+Apps created with Flutter 3.41 or later (UIScene template, `SceneDelegate.swift`
+present, `AppDelegate` adopts `FlutterImplicitEngineDelegate`):
 
 ```swift
 import Flutter
@@ -185,9 +231,35 @@ import ble_keeper
 }
 ```
 
+Apps created before Flutter 3.41 (classic template, no `SceneDelegate.swift`,
+plugins registered in `didFinishLaunchingWithOptions`):
+
+```swift
+import Flutter
+import UIKit
+import ble_keeper
+
+@main
+@objc class AppDelegate: FlutterAppDelegate {
+  override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+  ) -> Bool {
+    BleKeeperPlugin.bootstrap(launchOptions: launchOptions) { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+    GeneratedPluginRegistrant.register(with: self)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}
+```
+
 The closure registers plugins on the headless engine used for the background
 handler. If the call is missing, you get `Blocked(Misconfigured(...))` when
 the UI listens to events.
+
+Requirements: iOS 15 or later. Both Swift Package Manager (the Flutter 3.47
+default) and CocoaPods work.
 
 **App Store review.** Guideline 2.5.4 allows background modes only for their
 intended purpose. Explain in the review notes which Bluetooth accessory the
@@ -253,13 +325,32 @@ replaces its subscriptions and options. Several devices can be kept at once.
 
 `keepConnected` returns when the request is accepted, not when the device is
 connected. `Connected` means services are discovered and every subscription
-is enabled. Problems the OS imposes arrive as `Blocked` events; programming
-errors (bad UUID, empty subscription list) throw `ArgumentError`; platform
-errors on `read`/`write` throw `BleKeeperException` with a `code` such as
+is enabled. Problems the OS imposes arrive as `Blocked` events. Programming
+errors complete the returned future with an `ArgumentError` (bad UUID, empty
+subscription list, more than 32 subscriptions, notification texts over 256
+characters, a closure passed to `registerBackgroundHandler`). Platform errors
+complete it with a `BleKeeperException` whose `code` is for example
 `not_connected`, `payload_too_large` or `timeout`.
 
-Events are buffered natively while nobody listens and delivered when the
-first listener subscribes.
+**Event buffer.** Events are buffered natively while no Dart listener (and no
+background handler) is attached, and delivered in order when one attaches.
+The buffer holds up to 1000 `Data` events; when it is full the oldest `Data`
+event is dropped and the log notes how many were dropped. Other events
+(`Connected`, `Disconnected`, `Reconnecting`, `RestoredAfterKill`, `Blocked`)
+are never dropped to make room for data; they have their own cap of 1000.
+Buffered events are kept in memory only and are lost if the process dies
+before delivery.
+
+**Name clashes.** The event classes have short names (`Data`, `Connected`,
+`Blocked`...). If they clash with your own types, import with a prefix:
+
+```dart
+import 'package:ble_keeper/ble_keeper.dart' as keeper;
+
+void onEvent(keeper.KeeperEvent e) {
+  if (e is keeper.Data) { /* ... */ }
+}
+```
 
 ## Background handler
 
@@ -292,12 +383,18 @@ Future<void> main() async {
 
 ## Event log and privacy
 
-Both platforms keep a rotating log of events (two files of 1 MB, one event
-per line, ISO-8601 UTC timestamps):
+Both platforms keep a rotating log (two files of 1 MB, ISO-8601 UTC
+timestamps). Every state event is one line; `Data` events are summarised per
+device and characteristic once a minute, so notifications do not cause a
+disk write each:
 
 ```
-2026-10-13T09:32:33.123Z #42 data device=dev-3f2a91c4 char=12345678-1234-1234-1234-1234567890ac len=4
+2026-10-13T09:32:33.123Z #42 disconnected device=dev-3f2a91c4 reason=linkLoss code=8
+2026-10-13T09:33:00.000Z #43-102 data device=dev-3f2a91c4 char=12345678-1234-1234-1234-1234567890ac count=60 bytes=240
 ```
+
+Lines are written within about 2 s; a process kill can lose the newest
+seconds of the log.
 
 `exportLog()` returns the path of a single file you can share;
 `clearLog()` deletes the log and exported copies.
@@ -385,6 +482,11 @@ does not belong to this app install. Scan for the device in your app first.
 - Android OEM battery managers can stop the service regardless.
 - Writes are not queued across disconnects; `write` fails with
   `not_connected`.
+- Bonded / encrypted peripherals are not supported in 0.1: the plugin never
+  starts bonding itself, and a characteristic that requires encryption fails
+  its CCCD write (reported as `Blocked(Misconfigured)`; the OS may show a
+  pairing prompt). Peripherals that use a random static address may need to
+  be found again after Bluetooth is toggled.
 - No scanning, bonding API, GATT server or OTA.
 - Payload integrity (CRC, sequence numbers) is your protocol's job.
 
@@ -393,7 +495,10 @@ does not belong to this app install. Scan for the device in your app first.
 - Android `CompanionDeviceService` (API 31+) so the system binds the app when
   an associated device comes in range.
 - iOS AccessorySetupKit (iOS 18+) for pairing and accessory-scoped
-  permissions.
+  permissions. Per Apple TN3115, from iOS 26 only apps that set up their
+  accessories with AccessorySetupKit are relaunched after a user force-quit,
+  a Control Center Bluetooth toggle or Airplane Mode; this is the main reason
+  to add it.
 - Connection priority and PHY options, bonding helpers.
 
 ## FAQ
