@@ -8,11 +8,11 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 
 | Phase | Status |
 |---|---|
-| 1. Scaffold, Pigeon, Dart API, Android single connection, minimal example | done (iOS build check pending) |
+| 1. Scaffold, Pigeon, Dart API, Android single connection, minimal example | done |
 | 2. Android robustness (reconnect, BT on/off, 133, headless, log, Blocked, multi-device) | code done with phase 1 (one commit; the pieces depend on each other); hardware verification pending |
-| 3. iOS (restoration, pending connect, buffering, force-quit heuristic, log, debug kill) | not started |
-| 4. Example app + Dart tests | not started |
-| 5. Publishing prep | not started |
+| 3. iOS (restoration, pending connect, buffering, force-quit heuristic, log, debug kill) | done; hardware verification pending |
+| 4. Example app + Dart tests | done |
+| 5. Publishing prep | done except the items under "Before publishing I must" |
 
 ### Step log
 
@@ -21,6 +21,12 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 - 1.6-1.7 + phase 2 done: Android runtime, KeeperService, GattManager, EventHub, SessionStore, KeeperState, BootReceiver, HeadlessEngineRunner, RotatingEventLog, LogFormatter, 55 JVM unit tests (`./gradlew :ble_keeper:testDebugUnitTest`).
 - 1.8 done: minimal example (device ID, keep connected, counter) + widget test.
 - Checks: `dart format` clean, `flutter analyze` 0 issues, `flutter test` 61 pass, example widget test pass, `flutter build apk --debug` OK.
+- Phase 1 iOS check: `flutter build ios --no-codesign --debug` OK (Swift Package Manager, the 3.47 default).
+- 3.x done: Swift KeeperRuntime, CentralManagerHolder (restore identifier only when bluetooth-central is declared), PeripheralSession (pending connect, discovery, notify, read/write with timeouts, write-without-response flow control), EventHub, SessionStore, KeeperState, ForceQuitDetector, ConfigurationChecker, HeadlessEngineRunner, LogFormatter, RotatingEventLog, privacy manifest enabled for CocoaPods and SPM. XCTests in example/ios/RunnerTests (run on the iOS 18.4 simulator).
+- 3.7 done: example Info.plist keys, AppDelegate `BleKeeperPlugin.bootstrap`, debug-only `simulateSystemKill` channel.
+- 4 done: example app (scan via universal_ble, keep/stop, live counter, gap/reset detection, link state, event log, 3 ESP32 commands, export/clear log, Android permission helper, iOS debug kill button), 19 example tests.
+- 5 done: pubspec (0.1.0, description 150 chars, topics, screenshots, `meta` dependency for generated code), README, LICENSE (BSD-3), CHANGELOG, CONTRIBUTING, SECURITY.md, .pubignore, CI (SHA-pinned actions) and publish workflows, ESP32 sketch in tools/.
+- Review pass: `reviewer` and `security-auditor` agents. Fixed: event delivery stopped for good after one failed ack (now retried every 5 s); reconnect loop without backoff when setup failed; API 26-32 notification value race (handler only on API 33+); `keepConnected` right after the last `stop` hit the dying service; headless engine started during UI start-up or after the service stopped; timed-out read/write left the GATT stack busy (now drops the link); restartOnBoot=false sessions not resumed by the UI; permission checked before `startForeground`; iOS write-without-response ordering; orphaned restored peripherals cancelled; duplicate Connected after a service change; queued writes failing slowly; clearLog now rotates the salt and removes the corrupt-session backup; only the newest export is kept (iOS export file protection complete); iOS backup exclusion re-applied every launch; Dart caps on subscriptions (32) and notification strings (256); example no longer prints raw IDs.
 
 ## Environment
 
@@ -69,6 +75,17 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 26. Plugin manifest adds `RECEIVE_BOOT_COMPLETED` (restart after reboot). Apps that do not want it can remove it with `tools:node="remove"`.
 27. Fallback notification icon path is from Material Icons "bluetooth" (Apache 2.0), attributed in the XML.
 
+## Deferred review findings (not fixed in 0.1.0)
+
+- Android pseudonym salt is stored as a file next to the log; with sandbox access the 24-bit MAC suffix space can be brute-forced. Fix: AndroidKeyStore HMAC key (security-auditor C-04). Documented in README.
+- Optional `logRawDeviceIds` flag instead of following the debuggable/DEBUG build (C-06). Documented in README.
+- No cap on the number of devices (C-05 partly): connection limits differ per controller.
+- Android `update()` does not unsubscribe characteristics removed from a session (they keep notifying until the next reconnect).
+- Android `everConnected` is in memory only, so after a sticky restart or boot the first reconnect is a direct connect (30 s) before autoConnect takes over.
+- Small file reads (sessions.json) on the Android main thread.
+- iOS: a notification arriving while a read is pending on the same characteristic completes the read (Core Bluetooth delivers both through one callback).
+- Dart: events arriving between the last listener cancelling and native `detach` are acknowledged but dropped.
+
 ## Open questions
 
 - None blocking. ESP32 behaviour uses the confirmed defaults: `silent` lasts 60 s or until next connection; counter keeps running while disconnected; counter resets on reboot; open link, no pairing; Arduino-ESP32 core 3.x BLE library.
@@ -96,5 +113,8 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 3. Replace `doc/screenshot.png` with a real screenshot.
 4. Install Xcode 26 (iOS 26 device testing) and run the hardware checklist.
 5. Accept Android SDK licences if a build asks for it.
-6. Add a contact address to SECURITY.md.
+6. Replace `SECURITY_CONTACT_EMAIL` in SECURITY.md and enable private vulnerability reporting on GitHub.
 7. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
+8. Optionally delete or rename the reused template files (`lib/ble_keeper_method_channel.dart` holds the Pigeon implementation). I did not delete anything.
+9. Run CI once on GitHub (macOS job included) after pushing; the workflows were not executed locally.
+10. Enable automated publishing on pub.dev (Admin > Automated publishing > GitHub Actions, repository `<you>/ble_keeper`, tag pattern `v{{version}}`) after the first manual publish.
