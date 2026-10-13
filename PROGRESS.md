@@ -19,7 +19,7 @@ reason. Local commits only; the user pushes. Status per finding:
 | M2 startForeground before stop | pending | | |
 | M3 duplicate CONNECTED | pending | | |
 | M4 log aggregation | pending | | |
-| M5 iOS restore delegates | pending | | |
+| M5 iOS restore delegates | Confirmed (CentralManagerHolder.swift:83 set delegate from an empty `sessions`), fixed | willRestoreState creates sessions from stored sessions and sets delegates; connect waits for poweredOn; also Low: no cancelPeripheralConnection when not powered on | hardware (checklist R-M5) |
 | M6 iOS headless gate | pending | | |
 | M7 iOS notify failure | pending | | |
 | M8 never evict non-Data | pending | | |

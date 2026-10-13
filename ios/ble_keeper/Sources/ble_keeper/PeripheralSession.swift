@@ -142,12 +142,14 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     if state == .ready, !added.isEmpty { subscribe(added) }
   }
 
-  func stop() {
+  /// - Parameter cancelConnection: false when Bluetooth is not powered on;
+  ///   Core Bluetooth rejects commands then and connections are gone anyway.
+  func stop(cancelConnection: Bool = true) {
     guard state != .stopped else { return }
     let wasUp = linkUp
     state = .stopped
     failAll(KeeperError(code: "not_connected", message: "stopped"))
-    central.cancelPeripheralConnection(peripheral)
+    if cancelConnection { central.cancelPeripheralConnection(peripheral) }
     if wasUp, connectedEmitted { emit(Events.disconnected(deviceId, .stopped, code: nil)) }
     connectedEmitted = false
   }

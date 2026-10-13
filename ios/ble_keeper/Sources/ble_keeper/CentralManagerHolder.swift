@@ -77,10 +77,17 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
   func centralManager(_ central: CBCentralManager, willRestoreState dict: [String: Any]) {
     restoredThisLaunch = true
     let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] ?? []
+    let stored = Dictionary(runtime.sessions.load().map { ($0.deviceId, $0) }, uniquingKeysWith: { _, b in b })
     for p in peripherals {
       restoredPeripherals[p.identifier] = p
-      // Re-attach the delegate right away so no callback is lost.
-      p.delegate = sessions[p.identifier.uuidString]
+      // The notification that caused the relaunch may be delivered right
+      // after this call, so the session and its delegate must exist now.
+      // Connect/discover still wait for .poweredOn (reconcileLocked).
+      if let s = stored[p.identifier.uuidString], sessions[s.deviceId] == nil {
+        let session = makeSession(s, p, central)
+        p.delegate = session
+        sessions[s.deviceId] = session
+      }
     }
     runtime.note(nil, "state restored with \(peripherals.count) peripheral(s)")
   }
@@ -143,11 +150,13 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
   private func reconcileLocked() {
     let wanted = runtime.sessions.load()
     let ids = Set(wanted.map { $0.deviceId })
+    let poweredOn = manager?.state == .poweredOn
     for (id, s) in sessions where !ids.contains(id) {
-      s.stop()
+      // Core Bluetooth commands are only valid while powered on.
+      s.stop(cancelConnection: poweredOn)
       sessions[id] = nil
     }
-    guard let manager = manager, manager.state == .poweredOn else { return }
+    guard let manager = manager, poweredOn else { return }
     // A restored peripheral without a session (stopped just before the app
     // was terminated) would otherwise stay connected and keep relaunching
     // the app.
@@ -174,14 +183,20 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
         }
         continue
       }
-      let session = PeripheralSession(
-        session: s, peripheral: peripheral, central: manager, queue: queue,
-        emit: { [runtime] in runtime.publish($0) },
-        note: { [runtime] text in runtime.note(s.deviceId, text) },
-        isForeground: { [weak self] in self?.appInForeground ?? false })
+      let session = makeSession(s, peripheral, manager)
       sessions[s.deviceId] = session
       session.start()
     }
+  }
+
+  private func makeSession(_ s: Session, _ peripheral: CBPeripheral, _ central: CBCentralManager)
+    -> PeripheralSession
+  {
+    PeripheralSession(
+      session: s, peripheral: peripheral, central: central, queue: queue,
+      emit: { [runtime] in runtime.publish($0) },
+      note: { [runtime] text in runtime.note(s.deviceId, text) },
+      isForeground: { [weak self] in self?.appInForeground ?? false })
   }
 
   private func missing(_ deviceId: String) -> KeeperError {
