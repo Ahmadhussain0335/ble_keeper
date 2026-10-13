@@ -1,27 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:ble_keeper/ble_keeper.dart';
+import 'package:ble_keeper/ble_keeper_platform_interface.dart';
+import 'package:ble_keeper_example/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ble_keeper_example/main.dart';
+class FakePlatform extends BleKeeperPlatform {
+  final controller = StreamController<KeeperEvent>.broadcast();
+
+  @override
+  Stream<KeeperEvent> get events => controller.stream;
+}
 
 void main() {
-  testWidgets('Verify Platform version', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('shows the counter from Data events', (tester) async {
+    final fake = FakePlatform();
+    BleKeeperPlatform.instance = fake;
 
-    // Verify that platform version is retrieved.
-    expect(
-      find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is Text && widget.data!.startsWith('Running on:'),
+    await tester.pumpWidget(const MaterialApp(home: CounterPage()));
+    expect(find.text('Counter: -'), findsOneWidget);
+
+    fake.controller.add(
+      Data(
+        deviceId: 'AA:BB:CC:DD:EE:FF',
+        characteristic: counterChar,
+        bytes: Uint8List.fromList([42, 0, 0, 0]),
+        timestamp: DateTime(2026),
       ),
-      findsOneWidget,
     );
+    await tester.pump();
+
+    expect(find.text('Counter: 42'), findsOneWidget);
   });
 }

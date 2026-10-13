@@ -1,58 +1,86 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:ble_keeper/ble_keeper.dart';
+import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+final counterChar = CharacteristicRef(
+  serviceUuid: '12345678-1234-1234-1234-1234567890ab',
+  characteristicUuid: '12345678-1234-1234-1234-1234567890ac',
+);
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+void main() => runApp(const MaterialApp(home: CounterPage()));
+
+class CounterPage extends StatefulWidget {
+  const CounterPage({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<CounterPage> createState() => _CounterPageState();
 }
 
-class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  final _bleKeeperPlugin = BleKeeper();
+class _CounterPageState extends State<CounterPage> {
+  final _deviceId = TextEditingController();
+  StreamSubscription<KeeperEvent>? _sub;
+  String _status = 'idle';
+  int? _counter;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _sub = BleKeeper.instance.events.listen(_onEvent);
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _bleKeeperPlugin.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
+  void _onEvent(KeeperEvent e) {
     setState(() {
-      _platformVersion = platformVersion;
+      if (e is Data && e.bytes.length >= 4) {
+        _counter = ByteData.sublistView(e.bytes).getUint32(0, Endian.little);
+      } else if (e is! Data) {
+        _status = e.toString();
+      }
     });
+  }
+
+  Future<void> _keep() async {
+    try {
+      await BleKeeper.instance.keepConnected(
+        deviceId: _deviceId.text,
+        subscribe: [counterChar],
+      );
+    } on Object catch (e) {
+      setState(() => _status = 'error: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    _deviceId.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Plugin example app')),
-        body: Center(child: Text('Running on: $_platformVersion\n')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('ble_keeper')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _deviceId,
+              decoration: const InputDecoration(labelText: 'Device ID'),
+            ),
+            const SizedBox(height: 8),
+            FilledButton(onPressed: _keep, child: const Text('Keep connected')),
+            const SizedBox(height: 24),
+            Text(
+              'Counter: ${_counter ?? '-'}',
+              style: const TextStyle(fontSize: 32),
+            ),
+            Text(_status),
+          ],
+        ),
       ),
     );
   }
