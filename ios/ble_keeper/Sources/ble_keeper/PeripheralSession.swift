@@ -323,8 +323,13 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     _ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?
   ) {
     let key = Self.key(characteristic)
+    guard state == .subscribing || state == .ready else { return }
     if let error = error {
+      // Without the subscription the session is not usable; treat it like
+      // any setup failure (drop the link, retry with the failure policy).
       reportOnce(key, "enabling notifications on \(fullUuid(characteristic.uuid)) failed: \(error.localizedDescription)")
+      failSetup("enabling notifications failed: \(error.localizedDescription)")
+      return
     }
     pendingNotify.remove(key)
     if state == .subscribing, pendingNotify.isEmpty { becomeReady() }
@@ -400,6 +405,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
         reportOnce(ref.characteristic, "characteristic \(ref.characteristic) supports neither notify nor indicate")
         continue
       }
+      // Already subscribed, for example a peripheral restored by the system.
+      if ch.isNotifying { continue }
       pendingNotify.insert(Self.key(ch))
       // Writes the CCCD; Core Bluetooth picks notify or indicate.
       peripheral.setNotifyValue(true, for: ch)
