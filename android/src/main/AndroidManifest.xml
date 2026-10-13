@@ -1,3 +1,43 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.ahmadhussain.ble_keeper">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android 11 and lower: install-time Bluetooth permissions. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <!-- Android 12+: runtime permission for connectGatt and GATT operations.
+         BLUETOOTH_SCAN is deliberately not declared: this plugin never scans. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+: required for foregroundServiceType="connectedDevice". -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <!-- Android 13+: without it the service still runs, its notification is hidden. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Restart after reboot (AndroidOptions.restartOnBoot). Remove with
+         tools:node="remove" in the app manifest if not wanted. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
+
+    <application>
+        <service
+            android:name=".service.KeeperService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- System broadcasts reach non-exported receivers. -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

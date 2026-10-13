@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Override any of these in the app's res/values to change or translate them. -->
+<resources>
+    <string name="ble_keeper_channel_name">Bluetooth connection</string>
+    <plurals name="ble_keeper_notification_text">
+        <item quantity="one">Keeping %d Bluetooth device connected</item>
+        <item quantity="other">Keeping %d Bluetooth devices connected</item>
+    </plurals>
+</resources>

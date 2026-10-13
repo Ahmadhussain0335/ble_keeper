@@ -1,27 +1,21 @@
 package com.ahmadhussain.ble_keeper
 
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import org.mockito.Mockito
 import kotlin.test.Test
-
-/*
- * This demonstrates a simple unit test of the Kotlin portion of this plugin's implementation.
- *
- * Once you have built the plugin's example app, you can run these tests from the command
- * line by running `./gradlew testDebugUnitTest` in the `example/android/` directory, or
- * you can run them directly from IDEs that support JUnit such as Android Studio.
- */
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 internal class BleKeeperPluginTest {
     @Test
-    fun onMethodCall_getPlatformVersion_returnsExpectedValue() {
+    fun hostCalls_beforeAttach_failWithNotAttached() {
         val plugin = BleKeeperPlugin()
 
-        val call = MethodCall("getPlatformVersion", null)
-        val mockResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
-        plugin.onMethodCall(call, mockResult)
+        val error = assertFailsWith<BleKeeperFlutterError> { plugin.registerBackgroundHandler(1, 2) }
 
-        Mockito.verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE)
+        assertEquals("not_attached", error.code)
+    }
+
+    @Test
+    fun detach_beforeAttach_doesNotThrow() {
+        BleKeeperPlugin().detach()
     }
 }

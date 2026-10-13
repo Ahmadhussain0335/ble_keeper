@@ -51,6 +51,8 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            // android.util.Log and friends return defaults instead of throwing.
+            isReturnDefaultValues = true
             all {
                 it.useJUnitPlatform()
 
@@ -72,6 +74,12 @@ kotlin {
 }
 
 dependencies {
+    // 1.10.x rather than 1.11.x so host apps on older Kotlin can read its metadata.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+
     testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("org.mockito:mockito-core:5.0.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("io.mockk:mockk:1.14.11")
+    // Real org.json for JVM unit tests (the android.jar stub throws).
+    testImplementation("org.json:json:20260814")
 }
