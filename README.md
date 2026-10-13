@@ -120,7 +120,10 @@ The plugin does not request runtime permissions. Request
 `BLUETOOTH_CONNECT` (and `POST_NOTIFICATIONS` on Android 13+) before calling
 `keepConnected`. If `POST_NOTIFICATIONS` is denied the service still runs;
 Android only hides its notification. For example with
-[permission_handler](https://pub.dev/packages/permission_handler):
+[permission_handler](https://pub.dev/packages/permission_handler).
+permission_handler 13.x requires `compileSdk` 37, while Flutter 3.47 apps
+compile against 36; either use `flutter pub add "permission_handler:^12.0.1"`
+or raise `compileSdk` in `android/app/build.gradle.kts`:
 
 ```dart
 import 'dart:io';
@@ -274,6 +277,8 @@ again.
 ## Usage
 
 ```dart
+import 'dart:typed_data';
+
 import 'package:ble_keeper/ble_keeper.dart';
 
 final counter = CharacteristicRef(
@@ -290,21 +295,26 @@ Future<void> start(String deviceId) async {
   );
 }
 
-void listen() {
+// Show statuses in your UI rather than printing them: events contain device
+// IDs, and console output can end up in crash-reporter breadcrumbs.
+void listen({
+  required void Function(Uint8List value) onValue,
+  required void Function(String status) onStatus,
+}) {
   BleKeeper.instance.events.listen((event) {
     switch (event) {
       case Data(:final bytes):
-        handleValue(bytes);
-      case Connected(:final deviceId):
-        print('connected $deviceId');
+        onValue(bytes);
+      case Connected():
+        onStatus('connected');
       case Disconnected(:final reason):
-        print('disconnected: ${reason.name}');
+        onStatus('disconnected: ${reason.name}');
       case Reconnecting(:final attempt):
-        print('reconnecting, attempt $attempt');
-      case RestoredAfterKill(:final deviceIds):
-        print('restored after the OS killed the app: $deviceIds');
+        onStatus('reconnecting, attempt $attempt');
+      case RestoredAfterKill():
+        onStatus('restored after the OS killed the app');
       case Blocked(:final reason):
-        print('the OS does not allow it: $reason');
+        onStatus('the OS does not allow it: $reason');
     }
   });
 }

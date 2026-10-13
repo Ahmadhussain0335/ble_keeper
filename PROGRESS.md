@@ -39,8 +39,8 @@ reason. Local commits only; the user pushes. Status per finding:
 | Low Dart dispatcher / async throws / lint / order test | Confirmed, fixed | dispatcher had no try/catch; sync throws; test checked count only | (a65ce71) | dispatcher order test |
 | Low ESP32 core 3.x | Partly confirmed, fixed | BLE2902 deprecated under NimBLE | guarded; README states not compiled (6c43a46) | not compiled (no ESP32 toolchain here) |
 | Part 2 docs | Done | | README/CONTRIBUTING (68c02de), checklist (f23c2cd) | consumer app (below) |
-| Part 3 gates | in progress | | | |
-| Consumer app test | pending | | | |
+| Part 3 gates | Done, all pass | see Verification results | | |
+| Consumer app test | Done | `../keeper_consumer_test` (README-only setup) | 2 README gaps fixed: permission_handler 13 needs compileSdk 37; usage snippet used undefined `handleValue` + `print`. Notes in `keeper_consumer_test/CONSUMER_TEST_NOTES.md` | release APK + iOS build OK |
 
 Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edited EventHub.kt.
 
