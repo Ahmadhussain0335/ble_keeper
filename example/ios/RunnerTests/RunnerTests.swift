@@ -175,6 +175,36 @@ class LogFormatterTests: XCTestCase {
     XCTAssertNotEqual(a.pseudonym(device), b.pseudonym(device))
   }
 
+  func testDataSummaryMatchesAndroid() {
+    XCTAssertEqual(
+      raw.dataSummary(
+        ts, deviceId: device, characteristic: "12345678-1234-1234-1234-1234567890ac", count: 60,
+        bytes: 240, firstSeq: 5, lastSeq: 64),
+      "2025-10-13T09:32:33.123Z #5-64 data device=\(device) char=12345678-1234-1234-1234-1234567890ac count=60 bytes=240"
+    )
+  }
+
+  func testAggregatorSummarisesPerDeviceAndCharacteristic() {
+    let a = DataAggregator()
+    func data(_ seq: Int64, _ d: String, _ size: Int) -> PEvent {
+      PEvent(
+        seq: seq, timestampMs: 0, type: .data, deviceId: d,
+        characteristic: PCharacteristicRef(serviceUuid: "s", characteristicUuid: "c1"),
+        value: FlutterStandardTypedData(bytes: Data(count: size)))
+    }
+    a.add(data(1, "A", 4))
+    a.add(data(2, "A", 4))
+    a.add(data(3, "B", 2))
+    a.add(data(4, "A", 4))
+    XCTAssertEqual(
+      a.drain(ts, raw),
+      [
+        "2025-10-13T09:32:33.123Z #1-4 data device=A char=c1 count=3 bytes=12",
+        "2025-10-13T09:32:33.123Z #3-3 data device=B char=c1 count=1 bytes=2",
+      ])
+    XCTAssertTrue(a.isEmpty)
+  }
+
   /// Both platforms must produce the same pseudonym for the same salt.
   func testPseudonymMatchesAndroid() {
     let a = Pseudonymizer(salt: Data(repeating: 1, count: 16))
@@ -190,7 +220,7 @@ class RotatingEventLogTests: XCTestCase {
   override func setUp() {
     dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     queue = DispatchQueue(label: "test.log")
-    log = RotatingEventLog(dir: dir, fileName: "events.log", maxBytes: 20, queue: queue)
+    log = RotatingEventLog(dir: dir, fileName: "events.log", maxBytes: 20, queue: queue, flushDelay: 60)
   }
 
   override func tearDown() {
@@ -205,9 +235,17 @@ class RotatingEventLogTests: XCTestCase {
     log.append("0123456789")
     log.append("abcdefghij")
     log.append("ABCDEFGHIJ")
-    queue.sync {}
+    log.flush()
     XCTAssertEqual(text("events.log.1"), "abcdefghij\n")
     XCTAssertEqual(text("events.log"), "ABCDEFGHIJ\n")
+  }
+
+  func testLinesAreBufferedUntilFlush() {
+    log.append("x")
+    queue.sync {}
+    XCTAssertNil(text("events.log"))
+    log.flush()
+    XCTAssertEqual(text("events.log"), "x\n")
   }
 
   func testExportConcatenatesAndClearRemoves() throws {

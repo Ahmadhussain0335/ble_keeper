@@ -16,7 +16,25 @@ final class KeeperRuntime {
   let hub: EventHub
   let headless = HeadlessEngineRunner()
 
-  private var formatter: LogFormatter
+  /// Replaced by clearLog (main) and read by note (any thread).
+  private var formatterValue: LogFormatter
+  private let formatterLock = NSLock()
+  private var formatter: LogFormatter {
+    get {
+      formatterLock.lock()
+      defer { formatterLock.unlock() }
+      return formatterValue
+    }
+    set {
+      formatterLock.lock()
+      formatterValue = newValue
+      formatterLock.unlock()
+    }
+  }
+  // Main thread only.
+  private let dataAggregator = DataAggregator()
+  private var droppedSinceLastNote = 0
+  private var logTickScheduled = false
   private let log: RotatingEventLog
   private let exportDir: URL
   private(set) var central: CentralManagerHolder?
@@ -33,7 +51,7 @@ final class KeeperRuntime {
     sessions = SessionStore(url: dir.appendingPathComponent(KeeperConstants.sessionsFile))
     state = KeeperState(url: dir.appendingPathComponent(KeeperConstants.stateFile))
     config = ConfigurationChecker()
-    formatter = KeeperRuntime.makeFormatter(state)
+    formatterValue = KeeperRuntime.makeFormatter(state)
     log = RotatingEventLog(
       dir: dir.appendingPathComponent(KeeperConstants.logDirectory, isDirectory: true),
       fileName: KeeperConstants.logFile, maxBytes: KeeperConstants.logMaxBytes,
@@ -41,11 +59,20 @@ final class KeeperRuntime {
     exportDir = FileManager.default.temporaryDirectory.appendingPathComponent(
       KeeperConstants.exportDirectory, isDirectory: true)
     hub = EventHub()
+    // Data events are summarised per minute; everything else is one line.
     hub.onPublished = { [weak self] e in
       guard let self = self else { return }
-      self.log.append(self.formatter.format(e))
+      if e.type == .data {
+        self.dataAggregator.add(e)
+      } else {
+        self.log.append(self.formatter.format(e))
+      }
+      self.scheduleLogTick()
     }
-    hub.onDropped = { [weak self] n in self?.note(nil, "dropped \(n) undelivered events (buffer full)") }
+    hub.onDropped = { [weak self] n in
+      self?.droppedSinceLastNote += n
+      self?.scheduleLogTick()
+    }
     hub.onNoSink = { [weak self] in self?.onNoSink() }
     hub.onDeliveryFailed = { [weak self] in
       DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self?.hub.retry() }
@@ -78,6 +105,24 @@ final class KeeperRuntime {
   func note(_ deviceId: String?, _ text: String) {
     let prefix = deviceId.map { "device=\(formatter.deviceLabel($0)) " } ?? ""
     log.append(formatter.note(Events.now(), level: "note", prefix + text))
+  }
+
+  /// Writes pending Data summaries and the drop counter. Main thread only.
+  func flushLogSummaries() {
+    for line in dataAggregator.drain(Events.now(), formatter) { log.append(line) }
+    if droppedSinceLastNote > 0 {
+      note(nil, "dropped \(droppedSinceLastNote) undelivered Data events (buffer full)")
+      droppedSinceLastNote = 0
+    }
+  }
+
+  private func scheduleLogTick() {
+    guard !logTickScheduled else { return }
+    logTickScheduled = true
+    DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
+      self?.logTickScheduled = false
+      self?.flushLogSummaries()
+    }
   }
 
   // MARK: Launch
@@ -117,7 +162,7 @@ final class KeeperRuntime {
       publish(
         Events.blocked(
           .userForceQuit,
-          detail: "the app was closed from the app switcher while running; iOS does not relaunch it"))
+          detail: "best effort: the app was terminated while running, most likely closed from the app switcher; iOS does not relaunch an app after a force-quit"))
     case .probableForceQuit:
       publish(
         Events.blocked(
@@ -205,7 +250,9 @@ final class KeeperRuntime {
     central?.reconcile()
   }
 
+  /// Main thread (called from the main-actor Pigeon handler).
   func exportLog() throws -> URL {
+    flushLogSummaries()
     let f = DateFormatter()
     f.locale = Locale(identifier: "en_US_POSIX")
     f.dateFormat = "yyyyMMdd-HHmmss"

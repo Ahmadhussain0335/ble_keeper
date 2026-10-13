@@ -10,18 +10,25 @@ import Foundation
 /// restoration, and the user is now opening the app, a force-quit is the
 /// most likely cause.
 ///
-/// Known false positives (documented in the README): Bluetooth turned off in
-/// Settings while the app was suspended, a reboot after which the peripheral
-/// never came in range before the user opened the app, and a system
-/// termination with no Bluetooth event before the user opened the app.
+/// Both outcomes that report a force-quit are guesses. Known false positives
+/// (documented in the README):
+/// - `applicationWillTerminate` also runs when the system terminates an app
+///   that is running in the background (not suspended), for example under
+///   memory pressure, so `.forceQuit` is only "likely".
+/// - Bluetooth turned off in Settings while the app was suspended.
+/// - A reboot after which the peripheral never came in range before the user
+///   opened the app.
+/// - A system termination with no Bluetooth event before the user opened
+///   the app.
 enum ForceQuitDetector {
   enum Outcome: Equatable {
     /// Nothing was being kept; nothing to report.
     case none
     /// Relaunched by Core Bluetooth state restoration.
     case restored
-    /// `applicationWillTerminate` ran: the app was running (not suspended)
-    /// when the user swiped it away. Strong signal.
+    /// `applicationWillTerminate` ran: the app was terminated while running
+    /// (not suspended). Usually a swipe-away, but a system termination of a
+    /// background-running app looks the same. Likely, not certain.
     case forceQuit
     /// Not restored, no other explanation. Weak signal.
     case probableForceQuit

@@ -1,9 +1,12 @@
 import CryptoKit
 import Foundation
 
-/// Formats one event per line, identical to the Android LogFormatter:
+/// Formats one line per event, identical to the Android LogFormatter,
+/// except Data events, which are summarised per device and characteristic
+/// each minute (see `dataSummary`):
 ///
-///     2026-10-13T09:12:33.123Z #42 data device=dev-3f2a91c4 char=...90ac len=4
+///     2026-10-13T09:12:33.123Z #42 disconnected device=dev-3f2a91c4 reason=linkLoss code=8
+///     2026-10-13T09:13:00.000Z #43-102 data device=dev-3f2a91c4 char=...90ac count=60 bytes=240
 ///
 /// Data minimisation (GDPR Art. 5(1)(c)): payload bytes are never written,
 /// only their length. Device identifiers are replaced by a salted HMAC when a
@@ -32,6 +35,15 @@ struct LogFormatter {
       break
     }
     return s
+  }
+
+  /// One line for `count` Data events with sequence numbers firstSeq...lastSeq.
+  func dataSummary(
+    _ timestampMs: Int64, deviceId: String, characteristic: String, count: Int, bytes: Int,
+    firstSeq: Int64, lastSeq: Int64
+  ) -> String {
+    "\(LogFormatter.iso(timestampMs)) #\(firstSeq)-\(lastSeq) data device=\(deviceLabel(deviceId)) "
+      + "char=\(characteristic) count=\(count) bytes=\(bytes)"
   }
 
   /// A diagnostic line that is not an event.
@@ -107,5 +119,51 @@ struct Pseudonymizer {
   func pseudonym(_ deviceId: String) -> String {
     let mac = HMAC<SHA256>.authenticationCode(for: Data(deviceId.uppercased().utf8), using: key)
     return "dev-" + mac.prefix(4).map { String(format: "%02x", $0) }.joined()
+  }
+}
+
+/// Collects Data events between log flushes so the log gets one summary
+/// line per device and characteristic per interval. Main thread only.
+final class DataAggregator {
+  private struct Key: Hashable {
+    let deviceId: String
+    let characteristic: String
+  }
+
+  private struct Bucket {
+    let firstSeq: Int64
+    var lastSeq: Int64
+    var count = 0
+    var bytes = 0
+  }
+
+  private var order: [Key] = []
+  private var buckets: [Key: Bucket] = [:]
+
+  var isEmpty: Bool { buckets.isEmpty }
+
+  func add(_ e: PEvent) {
+    let key = Key(deviceId: e.deviceId ?? "", characteristic: e.characteristic?.characteristicUuid ?? "")
+    var b = buckets[key] ?? {
+      order.append(key)
+      return Bucket(firstSeq: e.seq, lastSeq: e.seq)
+    }()
+    b.lastSeq = e.seq
+    b.count += 1
+    b.bytes += e.value?.data.count ?? 0
+    buckets[key] = b
+  }
+
+  /// Summary lines for everything collected since the last drain.
+  func drain(_ nowMs: Int64, _ formatter: LogFormatter) -> [String] {
+    let lines = order.compactMap { key -> String? in
+      guard let b = buckets[key] else { return nil }
+      return formatter.dataSummary(
+        nowMs, deviceId: key.deviceId, characteristic: key.characteristic, count: b.count,
+        bytes: b.bytes, firstSeq: b.firstSeq, lastSeq: b.lastSeq)
+    }
+    order.removeAll()
+    buckets.removeAll()
+    return lines
   }
 }
