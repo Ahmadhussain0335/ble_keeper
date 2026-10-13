@@ -3,13 +3,13 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
-import 'ble_keeper_platform_interface.dart';
-import 'src/background_dispatcher.dart';
-import 'src/event_mapper.dart';
-import 'src/exceptions.dart';
-import 'src/keeper_event.dart';
-import 'src/messages.g.dart';
-import 'src/models.dart';
+import '../ble_keeper_platform_interface.dart';
+import 'background_dispatcher.dart';
+import 'event_mapper.dart';
+import 'exceptions.dart';
+import 'keeper_event.dart';
+import 'messages.g.dart';
+import 'models.dart';
 
 /// Looks up the callback handle of a top-level or static function.
 typedef CallbackHandleLookup = CallbackHandle? Function(Function callback);

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ble_keeper/ble_keeper.dart';
-import 'package:ble_keeper/ble_keeper_method_channel.dart';
+import 'package:ble_keeper/src/pigeon_ble_keeper.dart';
 import 'package:ble_keeper/ble_keeper_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';

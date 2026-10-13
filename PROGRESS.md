@@ -104,7 +104,7 @@ Not run: integration tests on a device, the CI workflows on GitHub, any hardware
 8. A denied `POST_NOTIFICATIONS` is not `Blocked`: the foreground service still runs, only the notification is hidden. It is logged as a warning.
 9. Foreground service start: try `startForegroundService` and catch `ForegroundServiceStartNotAllowedException` / `SecurityException` instead of pre-checking "app in foreground", because some exemptions are invisible to the app.
 10. Event log: device IDs are pseudonymised (salted HMAC, per-install salt) in release builds and written raw in debug builds; payloads are logged as length only. Reason: GDPR data minimisation while keeping bench debugging usable.
-11. Template files `lib/ble_keeper_platform_interface.dart`, `lib/ble_keeper_method_channel.dart` and their tests are reused, not deleted (no-delete rule): the platform interface is the test seam and the "method channel" file holds the Pigeon-backed implementation. Optional cleanup for you: rename `ble_keeper_method_channel.dart` to `ble_keeper_pigeon.dart`.
+11. The template's platform interface is kept as the test seam. The template's `ble_keeper_method_channel.dart` (which held the Pigeon implementation) was moved with `git mv` to `lib/src/pigeon_ble_keeper.dart` in the verification pass (M12), so it is no longer public API; its test moved to `test/pigeon_ble_keeper_test.dart`.
 12. iOS kill button (debug only) lives in the example app's AppDelegate behind a method channel, not in the plugin, and not via Dart `Process.killPid` (dart:io process APIs are not reliable on iOS).
 13. iOS example scanning uses `universal_ble` (BSD-3) in the example only; `flutter_blue_plus` is not used (non-standard licence).
 14. Kotlin coroutines pinned to 1.10.2 (not 1.11.0) so host apps on older Kotlin versions can still read its metadata.
@@ -162,6 +162,5 @@ Not run: integration tests on a device, the CI workflows on GitHub, any hardware
 5. Accept Android SDK licences if a build asks for it.
 6. Replace `SECURITY_CONTACT_EMAIL` in SECURITY.md and enable private vulnerability reporting on GitHub.
 7. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
-8. Optionally delete or rename the reused template files (`lib/ble_keeper_method_channel.dart` holds the Pigeon implementation). I did not delete anything.
 9. Run CI once on GitHub (macOS job included) after pushing; the workflows were not executed locally.
 10. Enable automated publishing on pub.dev (Admin > Automated publishing > GitHub Actions, repository `<you>/ble_keeper`, tag pattern `v{{version}}`) after the first manual publish.

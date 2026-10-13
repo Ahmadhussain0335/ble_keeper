@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'ble_keeper_method_channel.dart';
+import 'src/pigeon_ble_keeper.dart';
 import 'src/keeper_event.dart';
 import 'src/models.dart';
 

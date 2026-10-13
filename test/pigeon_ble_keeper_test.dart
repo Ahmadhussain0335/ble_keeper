@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:ble_keeper/ble_keeper.dart';
-import 'package:ble_keeper/ble_keeper_method_channel.dart';
+import 'package:ble_keeper/src/pigeon_ble_keeper.dart';
 import 'package:ble_keeper/src/messages.g.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
