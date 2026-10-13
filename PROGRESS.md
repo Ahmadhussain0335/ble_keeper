@@ -9,28 +9,40 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 Brief: confirm each review finding in code, fix with a test where possible, or reject with a
 reason. Local commits only; the user pushes. Status per finding:
 
-| ID | Status | Change | Test |
-|---|---|---|---|
-| H1 iOS pending connect | Confirmed, fixed | PeripheralSession: `ReconnectDecision` (delay only in foreground), `appDidEnterBackground`, failure counter + Blocked at 5; holder/runtime track foreground | ReconnectDecisionTests |
-| H2 Android direct-connect forever | pending | | |
-| H3 Dart attach/detach race | pending | | |
-| H4 publish workflow | pending | | |
-| M1 short-lived link loop | pending | | |
-| M2 startForeground before stop | pending | | |
-| M3 duplicate CONNECTED | pending | | |
-| M4 log aggregation | pending | | |
-| M5 iOS restore delegates | Confirmed (CentralManagerHolder.swift:83 set delegate from an empty `sessions`), fixed | willRestoreState creates sessions from stored sessions and sets delegates; connect waits for poweredOn; also Low: no cancelPeripheralConnection when not powered on | hardware (checklist R-M5) |
-| M6 iOS headless gate | pending | | |
-| M7 iOS notify failure | pending | | |
-| M8 never evict non-Data | pending | | |
-| M9 force-quit wording | pending | | |
-| M10 min Flutter CI | pending | | |
-| M11 CI XCTest/dry-run/timeouts | pending | | |
-| M12 move Pigeon impl to src | pending | | |
-| Low items | pending | | |
-| Part 2 docs | pending | | |
-| Part 3 gates | pending | | |
-| Consumer app test | pending | | |
+| ID | Status | Evidence (before fix) | Change (commit) | Test |
+|---|---|---|---|---|
+| H1 iOS pending connect | Confirmed, fixed | PeripheralSession.swift:151-168 `connectAfterBackoff` re-armed connect with `queue.asyncAfter` (no pending connect while suspended) | `ReconnectDecision`: delay only in foreground; `appDidEnterBackground` connects at once; Blocked after 5 failures (c6c986a) | ReconnectDecisionTests; hardware #17 |
+| H2 Android direct-connect forever | Confirmed, fixed | GattManager.kt:76 in-memory `everConnected`; :198 `autoConnect = everConnected` | `ConnectStrategy`: autoConnect after 3 direct failures or 2 min, reset on BT off, 30 min watchdog (a956d95) | ConnectStrategyTest; hardware #18 |
+| H3 Dart attach/detach race | Confirmed, fixed | ble_keeper_method_channel.dart:191-197 `_detach` set handler null after awaiting | serialised lifecycle + generation counter (1255fc1) | 2 race tests (fail on old code) ; hardware #19 |
+| H4 publish workflow | Rejected (premise) | setup-dart v1 reusable workflow installs Flutter too (`flutter-actions/setup-flutter` step) | kept, pinned to SHA v1.8.1, `environment: pub.dev` (6672e05) | YAML validated |
+| M1 short-lived link loop | Confirmed, fixed | GattManager.kt:250 `attempt = 0` at READY; link-up drop wait 0 | attempt resets after 30 s stable link; short links back off (a956d95) | ConnectStrategyTest, GattStatusTest |
+| M2 startForeground before stop | Confirmed, fixed | KeeperService.kt:73-76 stopped before startForeground | startForeground first; only API 34+ SecurityException path cannot (8f166b3) | hardware #14 |
+| M3 duplicate CONNECTED | Confirmed, fixed | GattManager.kt:231 no state guard, setupJob not cancelled | guard `state == CONNECTING`, cancel previous job (a956d95) | none (needs GATT stub) |
+| M4 log aggregation | Confirmed, fixed | RotatingEventLog appendBytes per line; one line per Data | per-minute Data summaries, buffered writer, rate-limited drop notes, both platforms (ade6b11, 410a3b6) | DataAggregator/summary/buffer tests (Kotlin + XCTest) |
+| M5 iOS restore delegates | Confirmed, fixed | CentralManagerHolder.swift:83 delegate from empty map | sessions created in willRestoreState (783be7f) | hardware #21 |
+| M6 iOS headless gate | Confirmed, fixed | KeeperRuntime.swift:162-166 gated on applicationState only | Bluetooth launch + no scene + no UI engine, 2 s re-check (0352e19) | HeadlessGateTests |
+| M7 iOS notify failure | Confirmed, fixed | PeripheralSession.swift:326-330 error still led to ready | failure drops link; skip if isNotifying (aedefde) | hardware |
+| M8 never evict non-Data | Confirmed, fixed | EventHub publish removed oldest of any type | evict Data only; separate cap for others (Android in ade6b11, iOS a37b9ab) | Kotlin + XCTest eviction tests |
+| M9 force-quit wording | Confirmed, fixed | ForceQuitDetector "Strong signal" | wording + false-positive list (410a3b6, README 68c02de) | n/a |
+| M10 min Flutter CI | Confirmed, fixed in CI | no 3.44 coverage | CI matrix 3.44.0 (6672e05); `meta ^1.18.0` = what 3.44.0 pins | CI only (not run locally) |
+| M11 CI XCTest/dry-run/timeouts | Confirmed, fixed | ci.yml lacked them | added (6672e05) | CI only |
+| M12 move Pigeon impl to src | Confirmed, fixed | lib/ble_keeper_method_channel.dart public | `git mv` to lib/src/pigeon_ble_keeper.dart (8e8d3dc) | existing tests |
+| Low iOS formatter race | Confirmed, fixed | note() on BLE queue vs clearLog on main | lock (410a3b6) | n/a |
+| Low iOS stop before poweredOn | Confirmed, fixed | CentralManagerHolder.swift:146-149 | no CB command unless powered on (783be7f) | n/a |
+| Low failSetup Disconnected w/o Connected | Confirmed, fixed | both platforms emitted on any link-up | Disconnected only after Connected (c6c986a, a956d95) | n/a |
+| Low timed-out waiters in FIFO | Confirmed, fixed | PeripheralSession.swift:338-351 | remove + drop link (4e11c7f) | n/a |
+| Low podspec source_files | Confirmed, fixed | `**/*` matched xcprivacy | `**/*.swift` (4e11c7f) | CocoaPods build (gate) |
+| Low Android MTU / onServiceChanged | Confirmed, fixed | MTU only set during setup | always stored; rediscover on API 31+ (a956d95) | n/a |
+| Low REASON_USER_REQUESTED at update | Confirmed, fixed | ExitReasons ignored update time | ignore exits within 60 s of lastUpdateTime (bdedf2e) | ExitReasonsTest |
+| Low sessions.json on main thread | Confirmed, fixed | SessionStore read file every call | in-memory cache (bdedf2e) | SessionStoreTest |
+| Low bonded peripherals doc | Done | not documented | README Limitations (68c02de) | n/a |
+| Low Dart dispatcher / async throws / lint / order test | Confirmed, fixed | dispatcher had no try/catch; sync throws; test checked count only | (a65ce71) | dispatcher order test |
+| Low ESP32 core 3.x | Partly confirmed, fixed | BLE2902 deprecated under NimBLE | guarded; README states not compiled (6c43a46) | not compiled (no ESP32 toolchain here) |
+| Part 2 docs | Done | | README/CONTRIBUTING (68c02de), checklist (f23c2cd) | consumer app (below) |
+| Part 3 gates | in progress | | | |
+| Consumer app test | pending | | | |
+
+Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edited EventHub.kt.
 
 ## Phase status
 
@@ -163,4 +175,4 @@ Not run: integration tests on a device, the CI workflows on GitHub, any hardware
 6. Replace `SECURITY_CONTACT_EMAIL` in SECURITY.md and enable private vulnerability reporting on GitHub.
 7. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
 9. Run CI once on GitHub (macOS job included) after pushing; the workflows were not executed locally.
-10. Enable automated publishing on pub.dev (Admin > Automated publishing > GitHub Actions, repository `<you>/ble_keeper`, tag pattern `v{{version}}`) after the first manual publish.
+10. Enable automated publishing on pub.dev (Admin > Automated publishing > GitHub Actions, repository `Ahmadhussain0335/ble_keeper`, tag pattern `v{{version}}`, required environment `pub.dev`) after the first manual publish, and create the `pub.dev` environment in the GitHub repository settings.
