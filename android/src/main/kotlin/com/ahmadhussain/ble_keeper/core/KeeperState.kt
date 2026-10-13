@@ -47,6 +47,12 @@ internal class KeeperState(private val file: File) {
         return bytes
     }
 
+    /** Forgets the salt so pseudonyms in new log lines cannot be linked to old ones. */
+    @Synchronized
+    fun rotateSalt() {
+        write(read().apply { remove("salt") })
+    }
+
     private fun read(): JSONObject {
         cache?.let { return it }
         val loaded = try {

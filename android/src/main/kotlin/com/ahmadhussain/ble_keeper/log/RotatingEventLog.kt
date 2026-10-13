@@ -25,9 +25,16 @@ internal class RotatingEventLog(
         executor.execute { appendNow(line) }
     }
 
-    /** Writes previous + current into [target] and returns it. Blocks until done. */
+    /**
+     * Writes previous + current into [target] and returns it. Earlier exports
+     * in the same directory are deleted, so copies do not pile up. Blocks
+     * until done.
+     */
     fun export(target: File): File = executor.submit(Callable {
-        target.parentFile?.mkdirs()
+        target.parentFile?.apply {
+            mkdirs()
+            listFiles()?.forEach { it.delete() }
+        }
         target.outputStream().use { out ->
             for (f in listOf(previous, current)) {
                 if (f.exists()) f.inputStream().use { it.copyTo(out) }

@@ -74,10 +74,11 @@ enum StorageLocation {
       try? FileManager.default.createDirectory(
         at: dir, withIntermediateDirectories: true,
         attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
-      var values = URLResourceValues()
-      values.isExcludedFromBackup = true
-      try? dir.setResourceValues(values)
     }
+    // Re-applied every time (idempotent) in case an earlier attempt failed.
+    var values = URLResourceValues()
+    values.isExcludedFromBackup = true
+    try? dir.setResourceValues(values)
     return dir
   }
 

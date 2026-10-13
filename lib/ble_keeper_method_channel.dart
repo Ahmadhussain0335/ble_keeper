@@ -31,6 +31,12 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
     );
   }
 
+  /// Upper bound for `subscribe` in keepConnected.
+  static const int maxSubscriptions = 32;
+
+  /// Upper bound for Android notification option strings.
+  static const int maxOptionLength = 256;
+
   final BleKeeperHostApi _host;
   final CallbackHandleLookup _handleOf;
   final void Function(BleKeeperEventApi? api) _setUpEventApi;
@@ -52,6 +58,27 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
     }
     if (subscribe.isEmpty) {
       throw ArgumentError.value(subscribe, 'subscribe', 'must not be empty');
+    }
+    // Requests are persisted and restored natively; bound their size.
+    if (subscribe.length > maxSubscriptions) {
+      throw ArgumentError.value(
+        subscribe.length,
+        'subscribe',
+        'at most $maxSubscriptions characteristics',
+      );
+    }
+    for (final (name, text) in [
+      ('notificationTitle', android?.notificationTitle),
+      ('notificationText', android?.notificationText),
+      ('notificationIcon', android?.notificationIcon),
+    ]) {
+      if (text != null && text.length > maxOptionLength) {
+        throw ArgumentError.value(
+          text,
+          'android.$name',
+          'at most $maxOptionLength characters',
+        );
+      }
     }
     final request = PKeepRequest(
       deviceId: deviceId.trim(),

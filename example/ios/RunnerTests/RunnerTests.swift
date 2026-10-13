@@ -52,14 +52,22 @@ class EventHubTests: XCTestCase {
     XCTAssertEqual(hub.pending, 0)
   }
 
-  func testFailedDeliveryDropsSinkKeepsEvents() {
+  func testFailedDeliveryKeepsSinkAndRetryRedelivers() {
     let hub = EventHub()
+    var failures = 0
+    hub.onDeliveryFailed = { failures += 1 }
     let sink = FakeSink(isBackground: false)
     hub.attach(sink)
     hub.publish(event())
     sink.ack(false)
     XCTAssertEqual(hub.pending, 1)
-    XCTAssertFalse(hub.hasSink)
+    XCTAssertTrue(hub.hasSink)
+    XCTAssertEqual(failures, 1)
+    XCTAssertEqual(sink.batches.count, 1)
+    hub.retry()
+    XCTAssertEqual(sink.batches.count, 2)
+    sink.ack()
+    XCTAssertEqual(hub.pending, 0)
   }
 
   func testUiSinkPreferred() {

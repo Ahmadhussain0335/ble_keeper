@@ -18,8 +18,10 @@ protocol EventSink: AnyObject {
 final class EventHub {
   private let capacity: Int
   private let maxBatch: Int
-  private let onPublished: (PEvent) -> Void
-  private let onDropped: (Int) -> Void
+  /// Called for every event after its seq is assigned (logging).
+  var onPublished: (PEvent) -> Void
+  /// Called with the number of events dropped because the buffer was full.
+  var onDropped: (Int) -> Void
 
   private var buffer: [PEvent] = []
   private var sinks: [EventSink] = []
@@ -29,6 +31,11 @@ final class EventHub {
 
   /// Called when events are waiting and no sink is attached.
   var onNoSink: () -> Void = {}
+
+  /// Called when a delivery failed (timeout, channel error). The sink stays
+  /// attached; dead engines are removed by `detach`. The owner calls
+  /// `retry` later.
+  var onDeliveryFailed: () -> Void = {}
 
   init(
     capacity: Int = 1000, maxBatch: Int = 100,
@@ -74,6 +81,9 @@ final class EventHub {
     }
   }
 
+  /// Tries delivering again after `onDeliveryFailed`.
+  func retry() { drain() }
+
   private func drain() {
     guard inFlight == nil, !buffer.isEmpty else { return }
     guard let sink = sinks.first(where: { !$0.isBackground }) ?? sinks.first else {
@@ -92,10 +102,10 @@ final class EventHub {
       if ok {
         // Remove by seq: events may have been dropped while in flight.
         while let first = self.buffer.first, first.seq <= lastSeq { self.buffer.removeFirst() }
+        self.drain()
       } else {
-        self.sinks.removeAll { $0 === sink }
+        self.onDeliveryFailed()
       }
-      self.drain()
     }
   }
 }

@@ -45,7 +45,8 @@ internal class KeeperRuntime private constructor(context: Context) {
     val state = KeeperState(File(dir, KeeperConstants.STATE_FILE))
 
     private val isDebuggable = appContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
-    private val formatter = LogFormatter(if (isDebuggable) null else Pseudonymizer(state.salt()))
+    @Volatile
+    private var formatter = newFormatter()
     private val log = RotatingEventLog(
         File(dir, KeeperConstants.LOG_DIR),
         KeeperConstants.LOG_FILE,
@@ -66,6 +67,7 @@ internal class KeeperRuntime private constructor(context: Context) {
 
     init {
         hub.onNoSink = ::onNoSink
+        hub.onDeliveryFailed = { mainHandler.postDelayed({ hub.retry() }, DELIVERY_RETRY_MS) }
         mainHandler.post { checkPreviousExit() }
     }
 
@@ -179,15 +181,16 @@ internal class KeeperRuntime private constructor(context: Context) {
         if (!sink.isBackground) {
             headless.stopSoon()
             // Resume persisted sessions when the UI comes back, for example
-            // after a force-stop, which Android never recovers from by itself.
-            if (service == null && sessions.load().isNotEmpty()) {
+            // after a force-stop (which Android never recovers from by itself)
+            // or for sessions with restartOnBoot = false after a reboot.
+            if (sessions.load().isNotEmpty()) {
                 ensureRunning(null, KeeperConstants.ACTION_KEEP)
             }
         }
     }
 
     private fun onNoSink() {
-        if (activityEngines.isEmpty() && state.dispatcherHandle != null) headless.start()
+        if (activityEngines.isEmpty() && state.dispatcherHandle != null && service != null) headless.start()
     }
 
     // Log export (call off the main thread).
@@ -197,7 +200,19 @@ internal class KeeperRuntime private constructor(context: Context) {
         return log.export(File(exportDir, "ble_keeper_events_$stamp.log"))
     }
 
-    fun clearLog() = log.clear(exportDir)
+    /**
+     * Erases the log, exported copies and the corrupt-session backup, and
+     * rotates the pseudonym salt so later lines cannot be linked to logs
+     * that were already shared (GDPR Art. 17).
+     */
+    fun clearLog() {
+        log.clear(exportDir)
+        File(dir, KeeperConstants.SESSIONS_FILE + ".corrupt").delete()
+        state.rotateSalt()
+        formatter = newFormatter()
+    }
+
+    private fun newFormatter() = LogFormatter(if (isDebuggable) null else Pseudonymizer(state.salt()))
 
     private fun checkPreviousExit() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
@@ -225,6 +240,8 @@ internal class KeeperRuntime private constructor(context: Context) {
     }
 
     companion object {
+        private const val DELIVERY_RETRY_MS = 5_000L
+
         @Volatile
         private var instance: KeeperRuntime? = null
 

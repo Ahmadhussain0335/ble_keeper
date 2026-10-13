@@ -62,6 +62,11 @@ final class KeeperState {
     return data
   }
 
+  /// Forgets the salt so pseudonyms in new log lines cannot be linked to old ones.
+  func rotateSalt() {
+    update { $0.salt = nil }
+  }
+
   private func read<T>(_ body: (Values) -> T) -> T {
     lock.lock()
     defer { lock.unlock() }

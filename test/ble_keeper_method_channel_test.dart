@@ -109,6 +109,29 @@ void main() {
       );
     });
 
+    test('rejects too many subscriptions', () {
+      expect(
+        () => platform.keepConnected(
+          deviceId: _device,
+          subscribe: List.filled(PigeonBleKeeper.maxSubscriptions + 1, char),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects an over-long notification option', () {
+      expect(
+        () => platform.keepConnected(
+          deviceId: _device,
+          subscribe: [char],
+          android: AndroidOptions(
+            notificationText: 'x' * (PigeonBleKeeper.maxOptionLength + 1),
+          ),
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('converts PlatformException to BleKeeperException', () async {
       when(() => host.keepConnected(any())).thenThrow(
         PlatformException(code: 'invalid_argument', message: 'bad MAC'),
@@ -126,8 +149,9 @@ void main() {
 
   test('write and read forward to the host', () async {
     when(() => host.write(any(), any(), any(), any())).thenAnswer((_) async {});
-    when(() => host.read(any(), any()))
-        .thenAnswer((_) async => Uint8List.fromList([5]));
+    when(
+      () => host.read(any(), any()),
+    ).thenAnswer((_) async => Uint8List.fromList([5]));
 
     await platform.write(_device, char, Uint8List.fromList([1, 2]));
     expect(await platform.read(_device, char), [5]);
@@ -156,8 +180,9 @@ void main() {
 
   group('registerBackgroundHandler', () {
     test('stores both raw handles', () async {
-      when(() => host.registerBackgroundHandler(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => host.registerBackgroundHandler(any(), any()),
+      ).thenAnswer((_) async {});
       handles[_topLevelHandler] = CallbackHandle.fromRawHandle(11);
       // Any non-null handle for the dispatcher works in this test.
       final realLookup = PigeonBleKeeper(
@@ -230,8 +255,9 @@ void main() {
     });
 
     test('attach failure is reported on the stream', () async {
-      when(() => host.attach(any()))
-          .thenThrow(PlatformException(code: 'channel-error'));
+      when(
+        () => host.attach(any()),
+      ).thenThrow(PlatformException(code: 'channel-error'));
       final completer = Completer<Object>();
       final sub = platform.events.listen(
         (_) {},

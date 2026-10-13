@@ -47,9 +47,9 @@ void main() {
 
   test('every disconnect reason maps to the same name', () {
     for (final r in PDisconnectReason.values) {
-      final e = mapEvent(
-        _event(PEventType.disconnected)..disconnectReason = r,
-      ) as Disconnected;
+      final e =
+          mapEvent(_event(PEventType.disconnected)..disconnectReason = r)
+              as Disconnected;
       expect(e.reason.name, r.name);
     }
   });
@@ -145,12 +145,14 @@ void main() {
     });
 
     test('permissionMissing carries the permission name', () {
-      final e = mapEvent(
-        blocked(
-          PBlockedReason.permissionMissing,
-          'android.permission.BLUETOOTH_CONNECT',
-        ),
-      ) as Blocked;
+      final e =
+          mapEvent(
+                blocked(
+                  PBlockedReason.permissionMissing,
+                  'android.permission.BLUETOOTH_CONNECT',
+                ),
+              )
+              as Blocked;
       expect(
         e.reason,
         const PermissionMissing('android.permission.BLUETOOTH_CONNECT'),
@@ -158,24 +160,24 @@ void main() {
     });
 
     test('foregroundStartNotAllowed', () {
-      final e = mapEvent(
-        blocked(PBlockedReason.foregroundStartNotAllowed),
-      ) as Blocked;
+      final e =
+          mapEvent(blocked(PBlockedReason.foregroundStartNotAllowed))
+              as Blocked;
       expect(e.reason, const ForegroundStartNotAllowed());
     });
 
     test('userForceQuit keeps the device', () {
-      final e = mapEvent(
-        blocked(PBlockedReason.userForceQuit)..deviceId = _device,
-      ) as Blocked;
+      final e =
+          mapEvent(blocked(PBlockedReason.userForceQuit)..deviceId = _device)
+              as Blocked;
       expect(e.reason, const UserForceQuit());
       expect(e.deviceId, _device);
     });
 
     test('misconfigured carries the detail', () {
-      final e = mapEvent(
-        blocked(PBlockedReason.misconfigured, 'missing key'),
-      ) as Blocked;
+      final e =
+          mapEvent(blocked(PBlockedReason.misconfigured, 'missing key'))
+              as Blocked;
       expect(e.reason, const Misconfigured('missing key'));
     });
 

@@ -28,12 +28,18 @@ final class RotatingEventLog {
   func export(to target: URL) throws -> URL {
     try queue.sync {
       let fm = FileManager.default
-      try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+      let exportDir = target.deletingLastPathComponent()
+      try fm.createDirectory(at: exportDir, withIntermediateDirectories: true)
+      // Keep only the newest export so copies do not pile up.
+      for f in (try? fm.contentsOfDirectory(at: exportDir, includingPropertiesForKeys: nil)) ?? [] {
+        try? fm.removeItem(at: f)
+      }
       var data = Data()
       for f in [previous, current] {
         if let chunk = try? Data(contentsOf: f) { data.append(chunk) }
       }
-      try data.write(to: target, options: .atomic)
+      // Export is a user action in the foreground, so the strictest class works.
+      try data.write(to: target, options: [.atomic, .completeFileProtection])
       return target
     }
   }

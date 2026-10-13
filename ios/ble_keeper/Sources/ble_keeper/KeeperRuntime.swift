@@ -16,7 +16,7 @@ final class KeeperRuntime {
   let hub: EventHub
   let headless = HeadlessEngineRunner()
 
-  private let formatter: LogFormatter
+  private var formatter: LogFormatter
   private let log: RotatingEventLog
   private let exportDir: URL
   private(set) var central: CentralManagerHolder?
@@ -32,24 +32,23 @@ final class KeeperRuntime {
     sessions = SessionStore(url: dir.appendingPathComponent(KeeperConstants.sessionsFile))
     state = KeeperState(url: dir.appendingPathComponent(KeeperConstants.stateFile))
     config = ConfigurationChecker()
-    #if DEBUG
-      formatter = LogFormatter(pseudonymizer: nil)
-    #else
-      formatter = LogFormatter(pseudonymizer: Pseudonymizer(salt: state.salt()))
-    #endif
+    formatter = KeeperRuntime.makeFormatter(state)
     log = RotatingEventLog(
       dir: dir.appendingPathComponent(KeeperConstants.logDirectory, isDirectory: true),
       fileName: KeeperConstants.logFile, maxBytes: KeeperConstants.logMaxBytes,
       queue: DispatchQueue(label: KeeperConstants.logQueueLabel))
     exportDir = FileManager.default.temporaryDirectory.appendingPathComponent(
       KeeperConstants.exportDirectory, isDirectory: true)
-    let formatter = self.formatter
-    let log = self.log
-    hub = EventHub(
-      onPublished: { log.append(formatter.format($0)) },
-      onDropped: { n in log.append(formatter.note(Events.now(), level: "note", "dropped \(n) undelivered events (buffer full)")) }
-    )
+    hub = EventHub()
+    hub.onPublished = { [weak self] e in
+      guard let self = self else { return }
+      self.log.append(self.formatter.format(e))
+    }
+    hub.onDropped = { [weak self] n in self?.note(nil, "dropped \(n) undelivered events (buffer full)") }
     hub.onNoSink = { [weak self] in self?.onNoSink() }
+    hub.onDeliveryFailed = { [weak self] in
+      DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self?.hub.retry() }
+    }
     // Only called when the app is running (foreground or background, not
     // suspended) and the user swipes it away; never for suspended apps.
     NotificationCenter.default.addObserver(
@@ -150,8 +149,14 @@ final class KeeperRuntime {
     }
   }
 
+  /// The headless engine is only for background relaunches. On a normal cold
+  /// launch events can be published before the UI engine registers; those
+  /// wait for the UI instead of running the handler in the foreground.
   private func onNoSink() {
-    if uiEngines == 0, state.dispatcherHandle != nil { headless.start(self) }
+    guard uiEngines == 0, state.dispatcherHandle != nil,
+      UIApplication.shared.applicationState == .background
+    else { return }
+    headless.start(self)
   }
 
   // MARK: Commands
@@ -182,8 +187,23 @@ final class KeeperRuntime {
     return try log.export(to: exportDir.appendingPathComponent("ble_keeper_events_\(f.string(from: Date())).log"))
   }
 
+  /// Erases the log, exported copies and the corrupt-session backup, and
+  /// rotates the pseudonym salt so later lines cannot be linked to logs that
+  /// were already shared (GDPR Art. 17). Called on the main actor.
   func clearLog() {
     log.clear([exportDir])
+    try? FileManager.default.removeItem(
+      at: StorageLocation.directory().appendingPathComponent(KeeperConstants.sessionsFile + ".corrupt"))
+    state.rotateSalt()
+    formatter = KeeperRuntime.makeFormatter(state)
+  }
+
+  private static func makeFormatter(_ state: KeeperState) -> LogFormatter {
+    #if DEBUG
+      return LogFormatter(pseudonymizer: nil)
+    #else
+      return LogFormatter(pseudonymizer: Pseudonymizer(salt: state.salt()))
+    #endif
   }
 
   /// Creates the CBCentralManager unless the Info.plist would make that

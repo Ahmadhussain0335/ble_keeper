@@ -20,6 +20,9 @@ internal class HeadlessEngineRunner(private val runtime: KeeperRuntime) {
     private var engine: FlutterEngine? = null
     private var starting = false
 
+    /** Set when stop() is called while the loader is still initialising. */
+    private var cancelPending = false
+
     /** Set after a failed start; cleared when handles are registered again. */
     private var failed = false
 
@@ -37,10 +40,15 @@ internal class HeadlessEngineRunner(private val runtime: KeeperRuntime) {
         val handle = runtime.state.dispatcherHandle ?: return
         val context = runtime.appContext
         starting = true
+        cancelPending = false
         val loader = FlutterInjector.instance().flutterLoader()
         loader.startInitialization(context)
         loader.ensureInitializationCompleteAsync(context, null, runtime.mainHandler) {
             starting = false
+            if (cancelPending || runtime.hub.hasUiSink) {
+                cancelPending = false
+                return@ensureInitializationCompleteAsync
+            }
             // Callback handles are only valid for the build that created them;
             // after an app update the app must call registerBackgroundHandler
             // again before the lookup succeeds.
@@ -61,12 +69,14 @@ internal class HeadlessEngineRunner(private val runtime: KeeperRuntime) {
 
     /** Lets the background isolate finish its current batch before stopping. */
     fun stopSoon() {
+        if (starting) cancelPending = true
         if (engine == null) return
         runtime.mainHandler.removeCallbacks(stopRunnable)
         runtime.mainHandler.postDelayed(stopRunnable, STOP_DELAY_MS)
     }
 
     fun stop() {
+        if (starting) cancelPending = true
         runtime.mainHandler.removeCallbacks(stopRunnable)
         runtime.mainHandler.removeCallbacks(attachTimeout)
         engine?.destroy()

@@ -83,13 +83,15 @@ void main() {
 
     await BleKeeper.instance.write('id', char, value, withResponse: false);
 
-    verify(() => platform.write('id', char, value, withResponse: false))
-        .called(1);
+    verify(
+      () => platform.write('id', char, value, withResponse: false),
+    ).called(1);
   });
 
   test('read returns the platform value', () async {
-    when(() => platform.read(any(), any()))
-        .thenAnswer((_) async => Uint8List.fromList([7]));
+    when(
+      () => platform.read(any(), any()),
+    ).thenAnswer((_) async => Uint8List.fromList([7]));
     expect(await BleKeeper.instance.read('id', char), [7]);
   });
 
@@ -100,8 +102,9 @@ void main() {
   });
 
   test('registerBackgroundHandler forwards', () async {
-    when(() => platform.registerBackgroundHandler(any()))
-        .thenAnswer((_) async {});
+    when(
+      () => platform.registerBackgroundHandler(any()),
+    ).thenAnswer((_) async {});
     await BleKeeper.instance.registerBackgroundHandler(_handler);
     verify(() => platform.registerBackgroundHandler(_handler)).called(1);
   });

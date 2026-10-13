@@ -15,6 +15,7 @@ import com.ahmadhussain.ble_keeper.KeeperConstants
 import com.ahmadhussain.ble_keeper.PBlockedReason
 import com.ahmadhussain.ble_keeper.core.Events
 import com.ahmadhussain.ble_keeper.core.KeeperRuntime
+import com.ahmadhussain.ble_keeper.core.PermissionChecker
 import com.ahmadhussain.ble_keeper.core.Session
 import com.ahmadhussain.ble_keeper.gatt.GattManager
 
@@ -64,6 +65,16 @@ class KeeperService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val all = runtime.sessions.load()
+        // Android 14 throws SecurityException from startForeground for a
+        // connectedDevice service without BLUETOOTH_CONNECT. Check first: the
+        // permission may have been revoked since the app last ran (sticky
+        // restart, boot).
+        val missing = PermissionChecker.missingForConnect(Build.VERSION.SDK_INT, runtime::isGranted)
+        if (missing.isNotEmpty()) {
+            missing.forEach { runtime.publish(Events.blocked(PBlockedReason.PERMISSION_MISSING, null, it)) }
+            stopNow()
+            return START_NOT_STICKY
+        }
         // After startForegroundService the app has a few seconds to call
         // startForeground, or the system stops it with an exception. Call it
         // first, even when the service is about to stop again.
@@ -150,6 +161,9 @@ class KeeperService : Service() {
     }
 
     private fun stopNow() {
+        // Clear right away: until onDestroy runs, a keepConnected call must
+        // start a new service instead of reconciling this dying one.
+        if (runtime.service === this) runtime.service = null
         managers.values.forEach { it.stop() }
         managers.clear()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

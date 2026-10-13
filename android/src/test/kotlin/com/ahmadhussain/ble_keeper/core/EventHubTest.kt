@@ -70,10 +70,10 @@ internal class EventHubTest {
     }
 
     @Test
-    fun failedDelivery_dropsSink_keepsEvents() {
+    fun failedDelivery_keepsSinkAndEvents_andRetryRedelivers() {
         val hub = EventHub()
-        var noSink = 0
-        hub.onNoSink = { noSink++ }
+        var failures = 0
+        hub.onDeliveryFailed = { failures++ }
         val sink = FakeSink(isBackground = false)
         hub.attach(sink)
         hub.publish(event())
@@ -81,8 +81,14 @@ internal class EventHubTest {
         sink.ack(ok = false)
 
         assertEquals(1, hub.pending)
-        assertTrue(!hub.hasSink)
-        assertEquals(1, noSink)
+        assertTrue(hub.hasSink)
+        assertEquals(1, failures)
+        assertEquals(1, sink.batches.size) // no immediate retry loop
+
+        hub.retry()
+        assertEquals(listOf(1L), sink.batches[1].map { it.seq })
+        sink.ack()
+        assertEquals(0, hub.pending)
     }
 
     @Test

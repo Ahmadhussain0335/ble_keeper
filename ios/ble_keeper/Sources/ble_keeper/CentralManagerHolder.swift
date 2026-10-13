@@ -138,6 +138,13 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
       sessions[id] = nil
     }
     guard let manager = manager, manager.state == .poweredOn else { return }
+    // A restored peripheral without a session (stopped just before the app
+    // was terminated) would otherwise stay connected and keep relaunching
+    // the app.
+    for (uuid, p) in restoredPeripherals where !ids.contains(uuid.uuidString) {
+      manager.cancelPeripheralConnection(p)
+      restoredPeripherals[uuid] = nil
+    }
     for s in wanted {
       if let existing = sessions[s.deviceId] {
         existing.update(s)

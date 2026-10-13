@@ -38,6 +38,13 @@ internal class EventHub(
     /** Called when events are waiting and no sink is attached. */
     var onNoSink: () -> Unit = {}
 
+    /**
+     * Called when a delivery failed (timeout, channel error). The sink stays
+     * attached; dead engines are removed by [detach]. The owner calls
+     * [retry] later.
+     */
+    var onDeliveryFailed: () -> Unit = {}
+
     val pending: Int get() = buffer.size
     val hasUiSink: Boolean get() = sinks.any { !it.isBackground }
     val hasSink: Boolean get() = sinks.isNotEmpty()
@@ -71,6 +78,9 @@ internal class EventHub(
         }
     }
 
+    /** Tries delivering again after [onDeliveryFailed]. */
+    fun retry() = drain()
+
     private fun drain() {
         if (inFlight != null || buffer.isEmpty()) return
         val sink = sinks.firstOrNull { !it.isBackground } ?: sinks.firstOrNull()
@@ -91,10 +101,10 @@ internal class EventHub(
                 // Remove by seq: events may have been dropped from the front
                 // while the batch was in flight.
                 while (buffer.isNotEmpty() && buffer.first().seq <= lastSeq) buffer.removeFirst()
+                drain()
             } else {
-                sinks.remove(sink)
+                onDeliveryFailed()
             }
-            drain()
         }
     }
 }

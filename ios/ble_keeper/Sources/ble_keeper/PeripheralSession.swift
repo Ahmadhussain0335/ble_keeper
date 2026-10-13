@@ -72,8 +72,11 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private var setupToken = 0
   private var reads: [String: [Waiter<Data>]] = [:]
   private var writes: [String: [Waiter<Void>]] = [:]
-  private var writeWithoutResponseQueue: [() -> Void] = []
+  private var writeWithoutResponseQueue: [(waiter: Waiter<Void>, send: () -> Void)] = []
   private var reported = Set<String>()
+  /// Connected was emitted for the current link (not again after a
+  /// service change).
+  private var connectedEmitted = false
 
   var deviceId: String { session.deviceId }
   private var linkUp: Bool { state == .discovering || state == .subscribing || state == .ready }
@@ -136,6 +139,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
 
   func didConnect() {
     guard state != .stopped else { return }
+    connectedEmitted = false
     peripheral.delegate = self
     state = .discovering
     armSetupTimeout()
@@ -149,6 +153,12 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     note("connect failed: \(error?.localizedDescription ?? "unknown")")
     attempt += 1
     emit(Events.reconnecting(deviceId, attempt: attempt))
+    connectAfterBackoff()
+  }
+
+  /// 1, 2, 4 ... 60 s. Used after failures that would otherwise repeat at
+  /// once (connect failure, link dropped during setup).
+  private func connectAfterBackoff() {
     state = .waiting
     let delay = min(60.0, pow(2.0, Double(min(attempt - 1, 6))))
     queue.asyncAfter(deadline: .now() + delay) { [weak self] in
@@ -159,6 +169,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
 
   func didDisconnect(_ error: Error?, isReconnecting: Bool) {
     let wasUp = linkUp
+    let wasReady = state == .ready
     failAll(KeeperError(code: "not_connected", message: "device disconnected"))
     guard state != .stopped, state != .off else { return }
     if wasUp {
@@ -171,8 +182,12 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
       // iOS 17 auto-reconnect (CBConnectPeripheralOptionEnableAutoReconnect)
       // is already reconnecting; a second connect is not needed.
       state = .connecting
-    } else {
+    } else if wasReady {
       connect()
+    } else {
+      // The link dropped during setup (for example discovery failed); an
+      // immediate reconnect would loop while the device is in range.
+      connectAfterBackoff()
     }
   }
 
@@ -224,10 +239,11 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
         self.peripheral.writeValue(value, for: ch, type: .withoutResponse)
         waiter.finish(.success(()))
       }
-      if peripheral.canSendWriteWithoutResponse {
+      // Keep order: never overtake writes that are already queued.
+      if peripheral.canSendWriteWithoutResponse && writeWithoutResponseQueue.isEmpty {
         send()
       } else {
-        writeWithoutResponseQueue.append(send)
+        writeWithoutResponseQueue.append((waiter, send))
         timeout(waiter, "write")
       }
     }
@@ -301,7 +317,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
 
   func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
     while peripheral.canSendWriteWithoutResponse, !writeWithoutResponseQueue.isEmpty {
-      writeWithoutResponseQueue.removeFirst()()
+      writeWithoutResponseQueue.removeFirst().send()
     }
   }
 
@@ -350,7 +366,10 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     state = .ready
     setupToken += 1
     attempt = 0
-    emit(Events.connected(deviceId))
+    if !connectedEmitted {
+      connectedEmitted = true
+      emit(Events.connected(deviceId))
+    }
   }
 
   private func failSetup(_ reason: String) {
@@ -409,6 +428,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private func failAll(_ error: KeeperError) {
     for waiter in reads.values.flatMap({ $0 }) { waiter.finish(.failure(error)) }
     for waiter in writes.values.flatMap({ $0 }) { waiter.finish(.failure(error)) }
+    for queued in writeWithoutResponseQueue { queued.waiter.finish(.failure(error)) }
     reads.removeAll()
     writes.removeAll()
     writeWithoutResponseQueue.removeAll()

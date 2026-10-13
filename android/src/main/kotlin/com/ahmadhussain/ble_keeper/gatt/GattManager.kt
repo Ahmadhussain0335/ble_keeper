@@ -35,9 +35,10 @@ import java.util.UUID
  * Owns the GATT connection to one device and keeps it alive.
  *
  * Threading: all state lives on [handler]'s thread (one HandlerThread per
- * service, shared by all devices). On API 26+ connectGatt delivers callbacks
- * on that handler; on API 24-25 they arrive on binder threads and are
- * re-posted to it. Suspend functions hop to the handler dispatcher.
+ * service, shared by all devices). On API 33+ connectGatt delivers callbacks
+ * on that handler; below 33 they arrive on binder threads and are re-posted
+ * to it (see connectGattCompat). Suspend functions hop to the handler
+ * dispatcher.
  *
  * Reconnect: the first attempt is a direct connect (autoConnect = false),
  * because autoConnect = true only finds devices already in the stack's cache
@@ -138,7 +139,7 @@ internal class GattManager(
         if (ch.properties and BluetoothGattCharacteristic.PROPERTY_READ == 0) {
             throw KeeperException("read_unsupported", "${c.characteristic} does not support read")
         }
-        queue.execute<ByteArray>(OP_READ) { g.readCharacteristic(ch) }
+        dropLinkOnTimeout(g) { queue.execute<ByteArray>(OP_READ) { g.readCharacteristic(ch) } }
     }
 
     suspend fun write(c: CharRef, value: ByteArray, withResponse: Boolean) = withContext(dispatcher) {
@@ -167,8 +168,20 @@ internal class GattManager(
         } else {
             BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         }
-        queue.execute<Unit>(OP_WRITE) { writeCharacteristicCompat(g, ch, value, type) }
+        dropLinkOnTimeout(g) { queue.execute<Unit>(OP_WRITE) { writeCharacteristicCompat(g, ch, value, type) } }
     }
+
+    /**
+     * A GATT callback that never arrives leaves the stack's own busy flag set,
+     * so every later operation would be rejected. Reconnecting clears it.
+     */
+    private suspend fun <T> dropLinkOnTimeout(g: BluetoothGatt, op: suspend () -> T): T =
+        try {
+            op()
+        } catch (e: KeeperException) {
+            if (e.code == "timeout" && g === gatt) dropLink(g, "operation timed out")
+            throw e
+        }
 
     private fun connect() {
         if (state == State.STOPPED) return
@@ -187,8 +200,16 @@ internal class GattManager(
         if (g == null) scheduleReconnect(GattStatus.GATT_ERROR, linkWasUp = false)
     }
 
+    /**
+     * The handler overload exists from API 26, but below API 33 the framework
+     * stores a notification in the shared characteristic object on the binder
+     * thread before posting the callback to the handler, so two fast
+     * notifications can both read the second value. Below 33 the callback
+     * therefore runs on the binder thread, copies the value at once and
+     * re-posts (see onCharacteristicChanged).
+     */
     private fun connectGattCompat(device: BluetoothDevice, autoConnect: Boolean): BluetoothGatt? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             device.connectGatt(
                 context,
                 autoConnect,
@@ -235,12 +256,16 @@ internal class GattManager(
         try {
             step()
         } catch (e: KeeperException) {
-            if (state == State.STOPPED || g !== gatt) return
-            note(deviceId, "setup failed: ${e.code} ${e.message}")
-            localDisconnect = true
-            g.disconnect()
-            onDisconnected(g, GattStatus.LOCAL_HOST_TERMINATED)
+            dropLink(g, "setup failed: ${e.code} ${e.message}")
         }
+    }
+
+    private fun dropLink(g: BluetoothGatt, reason: String) {
+        if (state == State.STOPPED || g !== gatt) return
+        note(deviceId, reason)
+        localDisconnect = true
+        g.disconnect()
+        onDisconnected(g, GattStatus.LOCAL_HOST_TERMINATED)
     }
 
     private suspend fun subscribeAll(g: BluetoothGatt, chars: List<CharRef>) {
@@ -283,6 +308,7 @@ internal class GattManager(
 
     private fun onDisconnected(g: BluetoothGatt, status: Int) {
         val wasUp = linkUp
+        val wasReady = state == State.READY
         setupJob?.cancel()
         queue.close(KeeperException("not_connected", "device disconnected"))
         g.close()
@@ -295,7 +321,10 @@ internal class GattManager(
             note(deviceId, "connect attempt failed, status $status")
         }
         localDisconnect = false
-        scheduleReconnect(status, wasUp)
+        // Only a link that was fully set up reconnects at once. A link that
+        // dropped during setup (CCCD rejected, discovery timeout) backs off,
+        // otherwise an in-range device would be reconnected in a tight loop.
+        scheduleReconnect(status, linkWasUp = wasReady)
     }
 
     private fun scheduleReconnect(status: Int, linkWasUp: Boolean) {
