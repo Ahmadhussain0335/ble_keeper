@@ -26,6 +26,7 @@ final class KeeperRuntime {
   private var launchClassified = false
   private var configReported = false
   private var bootstrapWarned = false
+  private var headlessCheckScheduled = false
 
   private init() {
     let dir = StorageLocation.directory()
@@ -156,14 +157,31 @@ final class KeeperRuntime {
     }
   }
 
-  /// The headless engine is only for background relaunches. On a normal cold
-  /// launch events can be published before the UI engine registers; those
-  /// wait for the UI instead of running the handler in the foreground.
+  /// The headless engine is only for Core Bluetooth background relaunches.
+  /// `applicationState` is not enough: during a normal UIScene cold launch
+  /// it is `.background` until the scene activates, and events published
+  /// then must wait for the UI. So require a Bluetooth launch with no
+  /// connected scene, and re-check after a grace period.
+  static func shouldStartHeadless(
+    uiEngines: Int, hasHandler: Bool, launchedForBluetooth: Bool, connectedScenes: Int
+  ) -> Bool {
+    uiEngines == 0 && hasHandler && launchedForBluetooth && connectedScenes == 0
+  }
+
   private func onNoSink() {
-    guard uiEngines == 0, state.dispatcherHandle != nil,
-      UIApplication.shared.applicationState == .background
-    else { return }
-    headless.start(self)
+    guard !headlessCheckScheduled, !headless.isRunning else { return }
+    headlessCheckScheduled = true
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+      guard let self = self else { return }
+      self.headlessCheckScheduled = false
+      guard !self.hub.hasSink, self.hub.pending > 0,
+        KeeperRuntime.shouldStartHeadless(
+          uiEngines: self.uiEngines, hasHandler: self.state.dispatcherHandle != nil,
+          launchedForBluetooth: self.launchedForBluetooth,
+          connectedScenes: UIApplication.shared.connectedScenes.count)
+      else { return }
+      self.headless.start(self)
+    }
   }
 
   // MARK: Commands
