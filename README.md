@@ -222,7 +222,7 @@ void listen() {
   BleKeeper.instance.events.listen((event) {
     switch (event) {
       case Data(:final bytes):
-        print('value: $bytes');
+        handleValue(bytes);
       case Connected(:final deviceId):
         print('connected $deviceId');
       case Disconnected(:final reason):
@@ -310,6 +310,24 @@ stored in app-private storage excluded from backups. Your app is the data
 controller: mention the log in your privacy notice if you export it.
 
 The plugin does no networking and sends nothing off the device.
+
+Things to watch in your own code:
+
+- `KeeperEvent.toString()` contains the raw device ID. Do not print events in
+  release builds; console output can end up in crash-reporter breadcrumbs.
+- `exportLog()` keeps only the newest export; `clearLog()` deletes it, the
+  log, and rotates the pseudonym salt so new lines cannot be linked to logs
+  you already shared. Copies made by the share sheet or the receiving app are
+  outside the plugin's reach.
+- On Android the decision "raw IDs or pseudonyms" follows the app's
+  `debuggable` flag, on iOS the plugin's `DEBUG` build setting. A debuggable
+  QA build therefore logs raw MAC addresses.
+- On Android the salt is stored in app-private storage next to the log.
+  Someone with access to the app sandbox (rooted phone, debuggable build) can
+  reverse the pseudonyms by trying all MAC addresses of a vendor. Exported
+  logs alone are not reversible.
+- If you upload exported logs, declare device identifiers / diagnostics in
+  your App Store privacy details and Play Data safety form.
 
 ## Testing with an ESP32
 

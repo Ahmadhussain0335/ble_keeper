@@ -1,4 +1,5 @@
 import 'package:ble_keeper/ble_keeper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'src/device_controller.dart';
@@ -8,7 +9,9 @@ import 'src/home_page.dart';
 /// Keep it short; on iOS the app has only a few seconds per Bluetooth event.
 @pragma('vm:entry-point')
 void backgroundHandler(KeeperEvent event) {
-  debugPrint('ble_keeper background: $event');
+  // KeeperEvent.toString() contains the raw device ID; console output can
+  // end up in crash-reporter breadcrumbs, so only log the type, in debug.
+  if (kDebugMode) debugPrint('ble_keeper background: ${event.runtimeType}');
 }
 
 Future<void> main() async {
