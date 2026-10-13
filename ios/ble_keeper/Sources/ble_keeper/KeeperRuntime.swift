@@ -1,0 +1,202 @@
+import CoreBluetooth
+import Flutter
+import UIKit
+
+/// Process-wide state shared by the plugin instances (one per Flutter
+/// engine) and the Core Bluetooth holder. Independent of any Flutter engine.
+///
+/// Main thread unless noted: `publish` and `note` may be called from any
+/// thread.
+final class KeeperRuntime {
+  static let shared = KeeperRuntime()
+
+  let sessions: SessionStore
+  let state: KeeperState
+  let config: ConfigurationChecker
+  let hub: EventHub
+  let headless = HeadlessEngineRunner()
+
+  private let formatter: LogFormatter
+  private let log: RotatingEventLog
+  private let exportDir: URL
+  private(set) var central: CentralManagerHolder?
+  private(set) var bootstrapped = false
+  private(set) var launchedForBluetooth = false
+  private var uiEngines = 0
+  private var launchClassified = false
+  private var configReported = false
+  private var bootstrapWarned = false
+
+  private init() {
+    let dir = StorageLocation.directory()
+    sessions = SessionStore(url: dir.appendingPathComponent(KeeperConstants.sessionsFile))
+    state = KeeperState(url: dir.appendingPathComponent(KeeperConstants.stateFile))
+    config = ConfigurationChecker()
+    #if DEBUG
+      formatter = LogFormatter(pseudonymizer: nil)
+    #else
+      formatter = LogFormatter(pseudonymizer: Pseudonymizer(salt: state.salt()))
+    #endif
+    log = RotatingEventLog(
+      dir: dir.appendingPathComponent(KeeperConstants.logDirectory, isDirectory: true),
+      fileName: KeeperConstants.logFile, maxBytes: KeeperConstants.logMaxBytes,
+      queue: DispatchQueue(label: KeeperConstants.logQueueLabel))
+    exportDir = FileManager.default.temporaryDirectory.appendingPathComponent(
+      KeeperConstants.exportDirectory, isDirectory: true)
+    let formatter = self.formatter
+    let log = self.log
+    hub = EventHub(
+      onPublished: { log.append(formatter.format($0)) },
+      onDropped: { n in log.append(formatter.note(Events.now(), level: "note", "dropped \(n) undelivered events (buffer full)")) }
+    )
+    hub.onNoSink = { [weak self] in self?.onNoSink() }
+    // Only called when the app is running (foreground or background, not
+    // suspended) and the user swipes it away; never for suspended apps.
+    NotificationCenter.default.addObserver(
+      forName: UIApplication.willTerminateNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      guard let self = self, !self.sessions.load().isEmpty else { return }
+      self.state.setWillTerminateSeen(true)
+    }
+  }
+
+  func publish(_ event: PEvent) {
+    if Thread.isMainThread {
+      hub.publish(event)
+    } else {
+      DispatchQueue.main.async { self.hub.publish(event) }
+    }
+  }
+
+  func note(_ deviceId: String?, _ text: String) {
+    let prefix = deviceId.map { "device=\(formatter.deviceLabel($0)) " } ?? ""
+    log.append(formatter.note(Events.now(), level: "note", prefix + text))
+  }
+
+  // MARK: Launch
+
+  func bootstrap(
+    launchOptions: [UIApplication.LaunchOptionsKey: Any]?,
+    registrant: @escaping (FlutterPluginRegistry) -> Void
+  ) {
+    bootstrapped = true
+    headless.registrant = registrant
+    launchedForBluetooth = launchOptions?[.bluetoothCentrals] != nil
+    if launchedForBluetooth { note(nil, "launched by Core Bluetooth") }
+    if !sessions.load().isEmpty || launchedForBluetooth {
+      // Must happen during didFinishLaunching for state restoration.
+      startCentralIfPossible()
+    } else {
+      classifyLaunch(restored: false)
+    }
+  }
+
+  /// Decides once per launch whether to report RestoredAfterKill or a
+  /// probable force-quit. Called after the first Core Bluetooth state update
+  /// (restoration, if any, has been delivered by then).
+  func classifyLaunch(restored: Bool) {
+    guard !launchClassified else { return }
+    launchClassified = true
+    let ids = sessions.load().map { $0.deviceId }
+    let outcome = ForceQuitDetector.classify(
+      hadSessions: !ids.isEmpty, restored: restored, willTerminateSeen: state.willTerminateSeen,
+      previousAppVersion: state.appVersion, currentAppVersion: config.appVersion)
+    state.setWillTerminateSeen(false)
+    state.setAppVersion(config.appVersion)
+    switch outcome {
+    case .restored:
+      publish(Events.restored(ids))
+    case .forceQuit:
+      publish(
+        Events.blocked(
+          .userForceQuit,
+          detail: "the app was closed from the app switcher while running; iOS does not relaunch it"))
+    case .probableForceQuit:
+      publish(
+        Events.blocked(
+          .userForceQuit,
+          detail: "best effort: not relaunched by Core Bluetooth since the last launch; most likely closed from the app switcher"))
+    case .appUpdated:
+      note(nil, "app updated since the last launch")
+    case .none:
+      break
+    }
+  }
+
+  // MARK: Engines
+
+  func pluginRegistered(isHeadless: Bool) {
+    if !isHeadless { uiEngines += 1 }
+    if !sessions.load().isEmpty { startCentralIfPossible() }
+  }
+
+  func pluginDetached(isHeadless: Bool) {
+    if !isHeadless { uiEngines = max(0, uiEngines - 1) }
+  }
+
+  func attachSink(_ sink: EventSink) {
+    if !bootstrapped, !bootstrapWarned {
+      bootstrapWarned = true
+      publish(
+        Events.blocked(
+          .misconfigured,
+          detail: "call BleKeeperPlugin.bootstrap(launchOptions:pluginRegistrant:) in AppDelegate; without it state restoration does not work"))
+    }
+    hub.attach(sink)
+    if sink.isBackground {
+      headless.attached()
+    } else {
+      headless.stopSoon()
+    }
+  }
+
+  private func onNoSink() {
+    if uiEngines == 0, state.dispatcherHandle != nil { headless.start(self) }
+  }
+
+  // MARK: Commands
+
+  func keep(_ session: Session) {
+    sessions.upsert(session)
+    if #available(iOS 13.1, *) {
+      switch CBManager.authorization {
+      case .denied, .restricted:
+        publish(Events.blocked(.permissionMissing, deviceId: session.deviceId, detail: "bluetooth"))
+        return
+      default:
+        break
+      }
+    }
+    if startCentralIfPossible() { central?.reconcile() }
+  }
+
+  func stop(_ deviceId: String) {
+    sessions.remove(deviceId)
+    central?.reconcile()
+  }
+
+  func exportLog() throws -> URL {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "yyyyMMdd-HHmmss"
+    return try log.export(to: exportDir.appendingPathComponent("ble_keeper_events_\(f.string(from: Date())).log"))
+  }
+
+  func clearLog() {
+    log.clear([exportDir])
+  }
+
+  /// Creates the CBCentralManager unless the Info.plist would make that
+  /// crash. Reports configuration problems once per launch.
+  @discardableResult
+  private func startCentralIfPossible() -> Bool {
+    if central != nil { return true }
+    if !configReported {
+      configReported = true
+      for problem in config.problems { publish(Events.blocked(.misconfigured, detail: problem)) }
+    }
+    guard config.hasUsageDescription else { return false }
+    central = CentralManagerHolder(runtime: self, restore: config.hasBackgroundMode)
+    return true
+  }
+}
