@@ -8,8 +8,8 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 
 | Phase | Status |
 |---|---|
-| 1. Scaffold, Pigeon, Dart API, Android single connection, minimal example | in progress |
-| 2. Android robustness (reconnect, BT on/off, 133, headless, log, Blocked, multi-device) | not started |
+| 1. Scaffold, Pigeon, Dart API, Android single connection, minimal example | done (iOS build check pending) |
+| 2. Android robustness (reconnect, BT on/off, 133, headless, log, Blocked, multi-device) | code done with phase 1 (one commit; the pieces depend on each other); hardware verification pending |
 | 3. iOS (restoration, pending connect, buffering, force-quit heuristic, log, debug kill) | not started |
 | 4. Example app + Dart tests | not started |
 | 5. Publishing prep | not started |
@@ -17,6 +17,10 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 ### Step log
 
 - 1.1 done: `FLUTTER_SWIFT_PACKAGE_MANAGER=true flutter create --template=plugin --platforms=android,ios --org com.ahmadhussain -a kotlin ble_keeper`, git init on `feat/v0.1.0`.
+- 1.2-1.4 done: Pigeon contract + generated code, Dart API (sealed events, mapper, platform interface, Pigeon implementation, background dispatcher), 61 Dart tests.
+- 1.6-1.7 + phase 2 done: Android runtime, KeeperService, GattManager, EventHub, SessionStore, KeeperState, BootReceiver, HeadlessEngineRunner, RotatingEventLog, LogFormatter, 55 JVM unit tests (`./gradlew :ble_keeper:testDebugUnitTest`).
+- 1.8 done: minimal example (device ID, keep connected, counter) + widget test.
+- Checks: `dart format` clean, `flutter analyze` 0 issues, `flutter test` 61 pass, example widget test pass, `flutter build apk --debug` OK.
 
 ## Environment
 
@@ -51,6 +55,19 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 12. iOS kill button (debug only) lives in the example app's AppDelegate behind a method channel, not in the plugin, and not via Dart `Process.killPid` (dart:io process APIs are not reliable on iOS).
 13. iOS example scanning uses `universal_ble` (BSD-3) in the example only; `flutter_blue_plus` is not used (non-standard licence).
 14. Kotlin coroutines pinned to 1.10.2 (not 1.11.0) so host apps on older Kotlin versions can still read its metadata.
+15. Minimum Flutter 3.44.0 / Dart 3.12: the 3.47 plugin template relies on built-in Kotlin (no `kotlin-android` plugin in the plugin's build file). Flutter 3.44.0 is the first release whose Gradle plugin applies `kotlin-android` to such plugins when the app disables built-in Kotlin. Only 3.47.7 is actually tested.
+16. Background callback handles are stored in a file in `noBackupFilesDir`, not SharedPreferences as the brief suggested: handles are only valid for the installed build, and Auto Backup would restore stale handles on a new device. A plugin cannot change the host app's backup rules.
+17. Android first connection attempt is direct (`autoConnect=false`), later reconnects use `autoConnect=true`. `autoConnect=true` only finds devices already in the stack cache and can wait forever for one it has never seen.
+18. A lost link reconnects immediately (autoConnect waits without timeout); immediate failures (status 133, connect timeout) back off 1 s, 2 s, 4 s ... 60 s with +/-20 % jitter.
+19. The service runs all GATT work on one HandlerThread; `connectGatt(..., handler)` (API 26+) delivers callbacks there. API 24-25 callbacks arrive on binder threads and are re-posted.
+20. Event delivery to Dart: a UI listener gets priority; the headless engine starts only when no UI engine has an activity and a handler is registered. If the headless isolate does not attach within 20 s, `Blocked(misconfigured)` is emitted and no restart is attempted until `registerBackgroundHandler` is called again.
+21. When the UI attaches and sessions exist but the service is not running (for example after a force-stop), the plugin restarts the service. Rationale: `keepConnected` means "until stop()".
+22. Force-stop is detected on the next launch with `ApplicationExitInfo.REASON_USER_REQUESTED` (API 30+), reported once as `Blocked(userForceQuit)`.
+23. Write limits: without response MTU - 3; with response up to 512 bytes (Android performs a long write).
+24. New error code `read_unsupported` (characteristic without the read property).
+25. Notification text and channel name are string resources (`ble_keeper_strings.xml`) so apps can translate them by overriding the resource names.
+26. Plugin manifest adds `RECEIVE_BOOT_COMPLETED` (restart after reboot). Apps that do not want it can remove it with `tools:node="remove"`.
+27. Fallback notification icon path is from Material Icons "bluetooth" (Apache 2.0), attributed in the XML.
 
 ## Open questions
 
