@@ -141,8 +141,6 @@ Not run: the CI workflows on GitHub (incl. the Flutter 3.44.0 matrix entry), int
 - Optional `logRawDeviceIds` flag instead of following the debuggable/DEBUG build (C-06). Documented in README.
 - No cap on the number of devices (C-05 partly): connection limits differ per controller.
 - Android `update()` does not unsubscribe characteristics removed from a session (they keep notifying until the next reconnect).
-- Android `everConnected` is in memory only, so after a sticky restart or boot the first reconnect is a direct connect (30 s) before autoConnect takes over.
-- Small file reads (sessions.json) on the Android main thread.
 - iOS: a notification arriving while a read is pending on the same characteristic completes the read (Core Bluetooth delivers both through one callback).
 - Dart: events arriving between the last listener cancelling and native `detach` are acknowledged but dropped.
 
