@@ -14,14 +14,25 @@ internal object ExitReasons {
     /** ApplicationExitInfo.REASON_USER_REQUESTED. */
     const val REASON_USER_REQUESTED = 10
 
+    /** Exits this close to the last app update are treated as the update. */
+    const val UPDATE_WINDOW_MS = 60_000L
+
     /**
      * True when the latest exit was a user force-stop that has not been
      * reported yet and devices were being kept connected at the time.
+     *
+     * Before API 33 (REASON_PACKAGE_UPDATED) an app update can also be
+     * recorded as REASON_USER_REQUESTED; an exit within [UPDATE_WINDOW_MS] of
+     * [appUpdatedAtMs] (PackageInfo.lastUpdateTime) is therefore ignored.
      */
     fun isUnreportedForceStop(
         reason: Int,
         exitTimestampMs: Long,
         lastReportedExitMs: Long,
         hadSessions: Boolean,
-    ): Boolean = hadSessions && reason == REASON_USER_REQUESTED && exitTimestampMs > lastReportedExitMs
+        appUpdatedAtMs: Long? = null,
+    ): Boolean = hadSessions &&
+        reason == REASON_USER_REQUESTED &&
+        exitTimestampMs > lastReportedExitMs &&
+        (appUpdatedAtMs == null || kotlin.math.abs(exitTimestampMs - appUpdatedAtMs) > UPDATE_WINDOW_MS)
 }

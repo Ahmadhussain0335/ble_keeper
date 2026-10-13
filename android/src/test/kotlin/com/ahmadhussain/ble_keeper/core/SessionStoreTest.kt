@@ -53,6 +53,13 @@ internal class SessionStoreTest {
     }
 
     @Test
+    fun load_isCached_afterFirstRead() {
+        store.upsert(session)
+        file.writeText("{not json") // changed behind the store's back
+        assertEquals(listOf(session), store.load())
+    }
+
+    @Test
     fun corruptFile_isQuarantined_andTreatedAsEmpty() {
         file.writeText("{not json")
         assertEquals(emptyList(), store.load())

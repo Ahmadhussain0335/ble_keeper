@@ -24,6 +24,16 @@ internal class ExitReasonsTest {
     }
 
     @Test
+    fun exitAtAnAppUpdate_isIgnored() {
+        assertFalse(
+            ExitReasons.isUnreportedForceStop(userRequested, 100_000, 1000, hadSessions = true, appUpdatedAtMs = 99_000),
+        )
+        assertTrue(
+            ExitReasons.isUnreportedForceStop(userRequested, 500_000, 1000, hadSessions = true, appUpdatedAtMs = 99_000),
+        )
+    }
+
+    @Test
     fun otherReasons_areIgnored() {
         assertFalse(ExitReasons.isUnreportedForceStop(lowMemory, 2000, 1000, hadSessions = true))
     }

@@ -257,7 +257,19 @@ internal class KeeperRuntime private constructor(context: Context) {
             null
         } ?: return
         val hadSessions = sessions.load().isNotEmpty()
-        if (ExitReasons.isUnreportedForceStop(info.reason, info.timestamp, state.lastReportedExitMs, hadSessions)) {
+        val updatedAt: Long? = try {
+            appContext.packageManager.getPackageInfo(appContext.packageName, 0).lastUpdateTime
+        } catch (e: Exception) {
+            null
+        }
+        if (ExitReasons.isUnreportedForceStop(
+                info.reason,
+                info.timestamp,
+                state.lastReportedExitMs,
+                hadSessions,
+                updatedAt,
+            )
+        ) {
             publish(
                 Events.blocked(
                     PBlockedReason.USER_FORCE_QUIT,

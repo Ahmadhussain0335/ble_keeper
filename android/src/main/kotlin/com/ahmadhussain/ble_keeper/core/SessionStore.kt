@@ -14,18 +14,26 @@ import java.io.IOException
  * process kill mid-write cannot leave a half-written file behind.
  */
 internal class SessionStore(private val file: File) {
+    /** Last loaded or saved value; avoids reading the file on every call. */
+    private var cache: List<Session>? = null
 
     @Synchronized
     fun load(): List<Session> {
-        if (!file.exists()) return emptyList()
-        return try {
-            decode(file.readText())
-        } catch (e: JSONException) {
-            quarantine()
+        cache?.let { return it }
+        val loaded = if (!file.exists()) {
             emptyList()
-        } catch (e: IOException) {
-            emptyList()
+        } else {
+            try {
+                decode(file.readText())
+            } catch (e: JSONException) {
+                quarantine()
+                emptyList()
+            } catch (e: IOException) {
+                return emptyList()
+            }
         }
+        cache = loaded
+        return loaded
     }
 
     @Synchronized
@@ -44,6 +52,7 @@ internal class SessionStore(private val file: File) {
 
     @Synchronized
     fun save(sessions: List<Session>) {
+        cache = sessions
         file.parentFile?.mkdirs()
         val tmp = File(file.parentFile, "${file.name}.tmp")
         tmp.writeText(encode(sessions))
