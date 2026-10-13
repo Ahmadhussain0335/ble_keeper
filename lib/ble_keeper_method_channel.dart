@@ -43,6 +43,12 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
   late final StreamController<KeeperEvent> _controller;
   int _lastSeq = -1;
 
+  /// Attach/detach run one after another, and only the latest request takes
+  /// effect. Otherwise listen -> cancel -> listen could let the slow detach
+  /// of the first subscription clear the handler of the second.
+  Future<void> _lifecycle = Future<void>.value();
+  int _generation = 0;
+
   @override
   Stream<KeeperEvent> get events => _controller.stream;
 
@@ -179,7 +185,17 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
     }
   }
 
-  Future<void> _attach() async {
+  void _attach() => _enqueue(_doAttach);
+
+  void _detach() => _enqueue(_doDetach);
+
+  void _enqueue(Future<void> Function(int generation) op) {
+    final generation = ++_generation;
+    _lifecycle = _lifecycle.then((_) => op(generation));
+  }
+
+  Future<void> _doAttach(int generation) async {
+    if (generation != _generation) return;
     _setUpEventApi(this);
     try {
       await guardPlatform(() => _host.attach(false));
@@ -188,12 +204,13 @@ class PigeonBleKeeper extends BleKeeperPlatform implements BleKeeperEventApi {
     }
   }
 
-  Future<void> _detach() async {
+  Future<void> _doDetach(int generation) async {
+    if (generation != _generation) return;
     try {
       await guardPlatform(_host.detach);
     } catch (error, stack) {
       _controller.addError(error, stack);
     }
-    _setUpEventApi(null);
+    if (generation == _generation) _setUpEventApi(null);
   }
 }

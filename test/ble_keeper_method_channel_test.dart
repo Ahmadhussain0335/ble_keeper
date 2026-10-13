@@ -222,6 +222,49 @@ void main() {
       expect(eventApiSetUps, [platform, null]);
     });
 
+    test(
+      'listen, cancel, listen with a slow detach keeps the new listener attached',
+      () async {
+        final detachGate = Completer<void>();
+        when(() => host.detach()).thenAnswer((_) => detachGate.future);
+
+        final sub1 = platform.events.listen((_) {});
+        await pumpEventQueue();
+        final cancelled = sub1.cancel();
+        final received = <KeeperEvent>[];
+        final sub2 = platform.events.listen(received.add);
+        await pumpEventQueue();
+
+        detachGate.complete();
+        await cancelled;
+        await pumpEventQueue();
+
+        // The handler must still be installed and native attached.
+        expect(eventApiSetUps.last, same(platform));
+        verify(() => host.attach(false)).called(greaterThanOrEqualTo(1));
+        await platform.onEvents([_connected(1)]);
+        await pumpEventQueue();
+        expect(received, hasLength(1));
+        await sub2.cancel();
+      },
+    );
+
+    test(
+      'a slow detach followed by attach never clears the handler last',
+      () async {
+        final detachGate = Completer<void>();
+        when(() => host.detach()).thenAnswer((_) => detachGate.future);
+        final sub1 = platform.events.listen((_) {});
+        await pumpEventQueue();
+        await sub1.cancel().timeout(Duration.zero, onTimeout: () {});
+        final sub2 = platform.events.listen((_) {});
+        detachGate.complete();
+        await pumpEventQueue();
+        expect(eventApiSetUps.last, isNotNull);
+        await sub2.cancel();
+      },
+    );
+
     test('delivers mapped events and drops duplicates by seq', () async {
       final received = <KeeperEvent>[];
       final sub = platform.events.listen(received.add);
