@@ -466,9 +466,19 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     return ch
   }
 
+  /// Fails `waiter` if no response arrived in time. A response that never
+  /// comes usually means the link is stuck, and a waiter left in the FIFO
+  /// would swallow the next response, so the waiter is removed and the link
+  /// dropped; failAll and the reconnect start from a clean state.
   private func timeout<T>(_ waiter: Waiter<T>, _ op: String) {
-    queue.asyncAfter(deadline: .now() + KeeperConstants.operationTimeout) {
+    queue.asyncAfter(deadline: .now() + KeeperConstants.operationTimeout) { [weak self] in
+      guard !waiter.isDone else { return }
       waiter.finish(.failure(KeeperError(code: "timeout", message: "\(op) timed out")))
+      guard let self = self, self.state == .ready else { return }
+      for key in self.reads.keys { self.reads[key]?.removeAll { $0.isDone } }
+      for key in self.writes.keys { self.writes[key]?.removeAll { $0.isDone } }
+      self.writeWithoutResponseQueue.removeAll { $0.waiter.isDone }
+      self.failSetup("\(op) timed out")
     }
   }
 

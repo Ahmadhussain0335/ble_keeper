@@ -14,7 +14,7 @@ Flutter UI, system termination and reboots.
   s.license          = { :type => 'BSD-3-Clause', :file => '../LICENSE' }
   s.author           = { 'Ahmad Hussain' => 'https://github.com/Ahmadhussain0335' }
   s.source           = { :path => '.' }
-  s.source_files = 'ble_keeper/Sources/ble_keeper/**/*'
+  s.source_files = 'ble_keeper/Sources/ble_keeper/**/*.swift'
   s.dependency 'Flutter'
   s.frameworks = 'CoreBluetooth'
   s.platform = :ios, '15.0'
