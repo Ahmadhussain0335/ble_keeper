@@ -28,6 +28,24 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 - 5 done: pubspec (0.1.0, description 150 chars, topics, screenshots, `meta` dependency for generated code), README, LICENSE (BSD-3), CHANGELOG, CONTRIBUTING, SECURITY.md, .pubignore, CI (SHA-pinned actions) and publish workflows, ESP32 sketch in tools/.
 - Review pass: `reviewer` and `security-auditor` agents. Fixed: event delivery stopped for good after one failed ack (now retried every 5 s); reconnect loop without backoff when setup failed; API 26-32 notification value race (handler only on API 33+); `keepConnected` right after the last `stop` hit the dying service; headless engine started during UI start-up or after the service stopped; timed-out read/write left the GATT stack busy (now drops the link); restartOnBoot=false sessions not resumed by the UI; permission checked before `startForeground`; iOS write-without-response ordering; orphaned restored peripherals cancelled; duplicate Connected after a service change; queued writes failing slowly; clearLog now rotates the salt and removes the corrupt-session backup; only the newest export is kept (iOS export file protection complete); iOS backup exclusion re-applied every launch; Dart caps on subscriptions (32) and notification strings (256); example no longer prints raw IDs.
 
+## Verification results (last run 2026-10-13, Flutter 3.47.7, Xcode 16.3)
+
+| Check | Result |
+|---|---|
+| `dart format --set-exit-if-changed .` | clean |
+| `flutter analyze` (plugin + example) | 0 issues |
+| `flutter test` (plugin) | 63 passed |
+| `flutter test` (example) | 19 passed |
+| Kotlin unit tests (`:ble_keeper:testDebugUnitTest`) | 55 passed |
+| XCTest (example RunnerTests, iOS 18.4 simulator) | 31 passed |
+| `flutter build apk --debug` | OK |
+| `flutter build ios --no-codesign` (Swift Package Manager) | OK |
+| CocoaPods build (fresh app with SPM disabled, plugin by path, in a scratch clone) | OK |
+| `flutter pub publish --dry-run` | 0 warnings, 135 KB |
+| pana 0.23.19 | 150/160. Lost 10: screenshot check needs `cwebp`/`gif2webp`/`webpinfo` (not installed here; `brew install webp`). Repository URL warning (placeholder) costs no points yet |
+
+Not run: integration tests on a device, the CI workflows on GitHub, any hardware test (see tools/HARDWARE_CHECKLIST.md).
+
 ## Environment
 
 - Flutter 3.47.7 / Dart 3.13.5 (upgraded from 3.41.6 at the start of this work).
@@ -35,7 +53,8 @@ Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 - Template: AGP 9.1.0, Kotlin 2.4.0, compileSdk 36, minSdk 24, iOS 15.0, Swift tools 5.9.
 - Pigeon 29.0.8, mocktail (dev).
 - Android SDK licences not all accepted (`flutter doctor --android-licenses`, interactive; you run it).
-- pana not installed yet (Phase 5 will run `dart pub global activate pana`).
+- pana 0.23.19 installed with `dart pub global activate pana` (binary in `~/.pub-cache/bin`, not on PATH).
+- Example pins permission_handler ^12.0.1: 13.x requires compileSdk 37 (not bumped; ask before SDK changes).
 
 ## Decisions (and why)
 
