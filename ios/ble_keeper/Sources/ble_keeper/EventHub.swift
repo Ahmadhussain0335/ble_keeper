@@ -16,7 +16,11 @@ protocol EventSink: AnyObject {
 /// receiver acknowledges it, and Dart drops duplicates by `seq`.
 /// Same algorithm as the Android EventHub.
 final class EventHub {
+  /// Maximum buffered Data events; the oldest Data event is dropped first.
   private let capacity: Int
+  /// Maximum buffered non-Data events. They are never evicted to make room
+  /// for Data; only this separate cap bounds them.
+  private let controlCapacity: Int
   private let maxBatch: Int
   /// Called for every event after its seq is assigned (logging).
   var onPublished: (PEvent) -> Void
@@ -38,11 +42,12 @@ final class EventHub {
   var onDeliveryFailed: () -> Void = {}
 
   init(
-    capacity: Int = 1000, maxBatch: Int = 100,
+    capacity: Int = 1000, controlCapacity: Int = 1000, maxBatch: Int = 100,
     onPublished: @escaping (PEvent) -> Void = { _ in },
     onDropped: @escaping (Int) -> Void = { _ in }
   ) {
     self.capacity = capacity
+    self.controlCapacity = controlCapacity
     self.maxBatch = maxBatch
     self.onPublished = onPublished
     self.onDropped = onDropped
@@ -58,12 +63,28 @@ final class EventHub {
     nextSeq += 1
     onPublished(stamped)
     buffer.append(stamped)
-    if buffer.count > capacity {
-      let dropped = buffer.count - capacity
-      buffer.removeFirst(dropped)
-      onDropped(dropped)
-    }
+    let dropped = evictOldest(isData: true, max: capacity) + evictOldest(isData: false, max: controlCapacity)
+    if dropped > 0 { onDropped(dropped) }
     drain()
+  }
+
+  /// Removes the oldest events of one class until at most `max` remain.
+  private func evictOldest(isData: Bool, max: Int) -> Int {
+    var excess = buffer.filter { ($0.type == .data) == isData }.count - max
+    guard excess > 0 else { return 0 }
+    var kept: [PEvent] = []
+    kept.reserveCapacity(buffer.count)
+    var dropped = 0
+    for e in buffer {
+      if excess > 0, (e.type == .data) == isData {
+        excess -= 1
+        dropped += 1
+      } else {
+        kept.append(e)
+      }
+    }
+    buffer = kept
+    return dropped
   }
 
   func attach(_ sink: EventSink) {

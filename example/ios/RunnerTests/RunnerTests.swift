@@ -98,10 +98,10 @@ class EventHubTests: XCTestCase {
     XCTAssertEqual(hub.pending, 0)
   }
 
-  func testCapacityDropsOldest() {
+  func testCapacityDropsOldestData() {
     var dropped = 0
     let hub = EventHub(capacity: 3, onDropped: { dropped += $0 })
-    for _ in 0..<5 { hub.publish(event()) }
+    for _ in 0..<5 { hub.publish(PEvent(seq: 0, timestampMs: 1, type: .data, deviceId: "A")) }
     XCTAssertEqual(hub.pending, 3)
     XCTAssertEqual(dropped, 2)
     let sink = FakeSink(isBackground: false)
@@ -333,5 +333,46 @@ class ReconnectDecisionTests: XCTestCase {
 
   func testNoDelayWithoutFailures() {
     XCTAssertEqual(ReconnectDecision.delay(consecutiveFailures: 0, foreground: true), 0)
+  }
+}
+
+class EventHubEvictionTests: XCTestCase {
+  func testNeverEvictsNonDataEvents() {
+    var dropped = 0
+    let hub = EventHub(capacity: 2, onDropped: { dropped += $0 })
+    hub.publish(PEvent(seq: 0, timestampMs: 1, type: .restoredAfterKill))
+    for _ in 0..<5 { hub.publish(PEvent(seq: 0, timestampMs: 1, type: .data, deviceId: "A")) }
+    hub.publish(PEvent(seq: 0, timestampMs: 1, type: .blocked))
+    let sink = FakeSink(isBackground: false)
+    hub.attach(sink)
+    XCTAssertEqual(sink.batches[0].map { $0.type }, [.restoredAfterKill, .data, .data, .blocked])
+    XCTAssertEqual(sink.batches[0].map { $0.seq }, [1, 5, 6, 7])
+    XCTAssertEqual(dropped, 3)
+  }
+
+  func testControlCapacityBoundsNonData() {
+    let hub = EventHub(capacity: 10, controlCapacity: 2)
+    for _ in 0..<4 { hub.publish(event()) }
+    XCTAssertEqual(hub.pending, 2)
+  }
+}
+
+class HeadlessGateTests: XCTestCase {
+  func testOnlyBluetoothLaunchWithoutSceneOrUiEngine() {
+    XCTAssertTrue(
+      KeeperRuntime.shouldStartHeadless(
+        uiEngines: 0, hasHandler: true, launchedForBluetooth: true, connectedScenes: 0))
+    XCTAssertFalse(
+      KeeperRuntime.shouldStartHeadless(
+        uiEngines: 0, hasHandler: true, launchedForBluetooth: false, connectedScenes: 0))
+    XCTAssertFalse(
+      KeeperRuntime.shouldStartHeadless(
+        uiEngines: 0, hasHandler: true, launchedForBluetooth: true, connectedScenes: 1))
+    XCTAssertFalse(
+      KeeperRuntime.shouldStartHeadless(
+        uiEngines: 1, hasHandler: true, launchedForBluetooth: true, connectedScenes: 0))
+    XCTAssertFalse(
+      KeeperRuntime.shouldStartHeadless(
+        uiEngines: 0, hasHandler: false, launchedForBluetooth: true, connectedScenes: 0))
   }
 }
