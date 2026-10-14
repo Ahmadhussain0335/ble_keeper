@@ -9,8 +9,23 @@ Setup for every test:
    run with it (record them as "NOT TESTED - setup limitation"). Its `silent`
    lasts 30 s (ESP32: 60 s).
 2. Install the example app in **debug** (raw device IDs in the log) and in
-   **release** once (pseudonymised log).
+   **release** once (pseudonymised log). iOS tests where iOS has to relaunch
+   the app (state restoration: 10, 11, 17, 21, and checking 12) need a
+   **profile** or **release** build started from the home screen, not under
+   the debugger: since iOS 14 a debug Flutter app can only be launched by the
+   Flutter tool or Xcode, so iOS cannot relaunch it in the background. Use
+   `flutter run --profile -d <iphone>` and press `d` to detach (or
+   `flutter build ios --profile` and install the app), then launch it from
+   the home screen. The example's **Simulate system kill** button is in
+   debug and profile builds only.
 3. Android: tap **Permissions**, grant all. iOS: accept the Bluetooth prompt.
+   With `tools/android_test_peripheral`, bond the central with the peripheral
+   phone once so it can follow the rotating address. Android central: pair
+   in Settings > Bluetooth and keep connected by the identity address. iPhone
+   (iOS has no pairing screen for BLE peripherals): in nRF Connect connect to
+   the peripheral, read characteristic `12345678-1234-1234-1234-1234567890ae`
+   once, accept the pairing request on both phones, disconnect and close
+   nRF Connect.
 4. Scan, pick `BLE-Test-Device`, tap **Keep connected**. Expect
    `connected`, counter increasing every second, Missed 0.
 5. After each test tap **Export log** and keep the file.
@@ -33,7 +48,7 @@ Devices: one stock-ish Android (Pixel), one aggressive-battery phone
 | 8 | ESP32 `silent` | phone OK | Tap **silent** | Link stays up, no data for 60 s, then "gap: missed ~60" |
 | 9 | Bluetooth off/on | phone OK | Turn Bluetooth off 30 s (Android quick settings; iOS Control Center **and** separately Settings) | `disconnected bluetoothOff`, `BLOCKED Bluetooth is off`; after turning on: `connected` without user action. iOS Control Center may not report off: record what happens |
 | 10 | Phone reboot | needs fixed-address device (ESP32 / static-address BLE gadget) | Reboot, unlock once, do not open the app | Android: within ~1 min `service started after boot`, `restoredAfterKill`, `connected` (export log after opening). iOS: app relaunched when the device reconnects; open the app: `restored after kill` in the event list |
-| 11 | iOS debug kill | phone OK | Tap **Simulate system kill (debug)** (run from Xcode or detached; the debugger keeps a killed app stopped otherwise) | App terminates; within seconds iOS relaunches it in the background when the peripheral sends data. Open the app: `restored after kill`, counter continues, Missed = gap |
+| 11 | iOS simulated system kill | phone OK | Profile build, launched from the home screen (see setup step 2). Tap **Simulate system kill** | App terminates; within seconds iOS relaunches it in the background when the peripheral sends data. Open the app: `restored after kill`, counter continues, Missed = gap |
 | 12 | iOS swipe force-quit | phone OK | Open the app switcher, swipe the app away, wait 2 min, open the app | Not restored while closed (no data in the log for that period). On launch: `BLOCKED app was force-quit by the user` (best effort), then reconnects |
 | 13 | OEM battery killer | phone OK | On Xiaomi/Oppo/Samsung with default battery settings: connect, swipe from recents, screen off 30 min | Record whether the service survives. Repeat after applying the README Troubleshooting settings |
 | 14 | Permission revoked (Android 12+) | phone OK | Settings > Apps > Nearby devices: deny, return to the app | `BLOCKED permission missing: android.permission.BLUETOOTH_CONNECT`; service stops |
@@ -48,7 +63,7 @@ Devices: one stock-ish Android (Pixel), one aggressive-battery phone
 | 18 (H2) | Android device absent for 2+ hours, battery | needs fixed-address device (ESP32 / static-address BLE gadget) (absence > 10 min) | Fully charge, unplug. `adb shell dumpsys batterystats --reset`. ESP32 off. Keep connected, screen off for 2 h. Then `adb shell dumpsys batterystats > stats.txt` and export the log | Log: about 3 direct attempts or 2 min of them, then waiting with autoConnect (no `reconnecting` lines every ~30-60 s for 2 h; at most one watchdog note per 30 min). Battery: the app is not among the top Bluetooth/wakelock consumers. Record % drop per hour. Switch the ESP32 on: reconnects without user action |
 | 19 (H3) | UI listen / cancel / listen | phone OK | In a debug build, navigate away from and back to a screen that listens to `BleKeeper.instance.events` 10 times quickly (or hot-restart repeatedly) while connected | The counter keeps updating after every return; no "frozen" UI until an app restart |
 | 20 | Random static address peripheral | needs a static-address BLE gadget (that is the point of the test) | Use a peripheral that advertises with a random static address (many nRF52/ESP32-C3 setups; check with nRF Connect: address type "random"). Connect, then toggle phone Bluetooth off/on, then power-cycle the peripheral | Android and iOS reconnect after both actions. If a peripheral regenerates its address on boot, record that a reconnect is not possible (expected; README Limitations) |
-| 21 (M5) | Notification during an iOS restoration relaunch | phone OK | Connected; tap **Simulate system kill (debug)** (app not attached to the debugger). Wait 30 s, open the app | The exported log shows `restoredAfterKill` followed by data summaries whose first sequence starts right after the relaunch; Missed in the UI is close to the seconds the app was dead, not more (the triggering notification was not lost) |
+| 21 (M5) | Notification during an iOS restoration relaunch | phone OK | Profile build, launched from the home screen. Connected; tap **Simulate system kill**. Wait 30 s, open the app | The exported log shows `restoredAfterKill` followed by data summaries whose first sequence starts right after the relaunch; Missed in the UI is close to the seconds the app was dead, not more (the triggering notification was not lost) |
 
 Absence longer than about 10 minutes, a peripheral reboot and a phone reboot
 are the cases where an Android phone peripheral's address can change; they

@@ -460,6 +460,21 @@ buttons for the commands.
 4. Try the commands, Bluetooth off/on, walking out of range, killing the app.
    **Export log** shares the native event log.
 
+No ESP32? `tools/android_test_peripheral` turns a spare Android phone into the
+same test device. It advertises with a rotating private address, so bond the
+central with it once: from an Android central pair in Settings > Bluetooth;
+from an iPhone (no pairing screen for BLE peripherals) connect with nRF
+Connect, read characteristic `12345678-1234-1234-1234-1234567890ae` once and
+accept the pairing request on both phones.
+
+**Testing iOS state restoration.** Use a profile or release build started from
+the home screen, not a debug build: since iOS 14 a debug Flutter app can only
+be launched by the Flutter tool or Xcode, so iOS cannot relaunch it in the
+background. For example `flutter run --profile`, press `d` to detach, then
+open the app from the home screen. In debug and profile builds the example's
+**Simulate system kill** button ends the process like a system termination;
+iOS should relaunch the app on the next notification from the device.
+
 ## Troubleshooting
 
 **Connection drops when the screen is off on Xiaomi, Oppo, Vivo, Huawei,
