@@ -1,0 +1,12 @@
+2026-10-14 19:15:36.664965 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample((null))>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 19:15:57.884704 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample((null))>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 19:16:51.641754 bluetoothd{bluetoothd}[97] <NOTICE>: Saving Central restoration data: <private> - bundleId com.ahmadhussain.bleKeeperExample, restorationId: com.ahmadhussain.ble_keeper.central, servicesToScan: {(
+2026-10-14 19:17:04.818768 Runner{UIKitCore}[876] <NOTICE>: Sending UIEvent type: 0; subtype: 0; to window: <UIWindow: <PTR>>; contextId: 0xED47D7D1
+2026-10-14 19:17:05.330037 bluetoothd{bluetoothd}[97] <NOTICE>: Saving Central restoration data: <private> - bundleId com.ahmadhussain.bleKeeperExample, restorationId: com.ahmadhussain.ble_keeper.central, servicesToScan: {(
+2026-10-14 19:17:05.334965 runningboardd{RunningBoard}[34] <NOTICE>: [app<com.ahmadhussain.bleKeeperExample((null))>:876] termination reported by launchd (2, 9, 9)
+2026-10-14 19:17:05.336923 runningboardd{RunningBoard}[34] <NOTICE>: [xpcservice<com.apple.extensionkitservice([app<com.ahmadhussain.bleKeeperExample((null))>:876])>{vt hash: 0}{definition:com.apple.extensionkitservice[standard][client]}:987:987] termination reported by launchd (2, 9, 9)
+2026-10-14 19:17:05.341757 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample((null))>: none (role: None) (endowments: (null))
+2026-10-14 19:17:05.342441 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample((null))>: none (role: None) (endowments: (null))
+2026-10-14 19:17:06.377824 Runner{CoreFoundation}[997] <DEBUG>: found no value for key EnhancedTextLegibilityEnabled in CFPrefsSearchListSource<<PTR>> (Domain: com.ahmadhussain.bleKeeperExample, Container: (null) Non-launch persona: 0)
+2026-10-14 19:17:06.893096 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: Background) (endowments: (null))
+2026-10-14 19:17:27.986410 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
