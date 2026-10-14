@@ -1,0 +1,17 @@
+2026-10-14T15:17:23.786Z #308-368 data device=dev-498a2a23 char=12345678-1234-1234-1234-1234567890ac count=61 bytes=244
+2026-10-14T15:18:02.443Z #369-406 data device=dev-498a2a23 char=12345678-1234-1234-1234-1234567890ac count=38 bytes=152
+2026-10-14T15:18:02.443Z #407 disconnected device=dev-498a2a23 reason=bluetoothOff
+2026-10-14T15:18:02.443Z #408 blocked reason=bluetoothOff
+2026-10-14T15:18:43.693Z note "Bluetooth on"
+2026-10-14T15:18:44.780Z #409 connected device=dev-498a2a23
+2026-10-14T15:18:59.090Z #410-423 data device=dev-498a2a23 char=12345678-1234-1234-1234-1234567890ac count=14 bytes=56
+2026-10-14T15:18:59.088Z #424 disconnected device=dev-498a2a23 reason=localTerminated
+2026-10-14T15:18:59.096Z note "device=dev-498a2a23 connect failed: Local device is powered off."
+2026-10-14T15:18:59.088Z #425 reconnecting device=dev-498a2a23 attempt=1
+2026-10-14T15:18:59.101Z #426 reconnecting device=dev-498a2a23 attempt=2
+2026-10-14T15:18:59.255Z note "device=dev-498a2a23 connect failed: Local device is powered off."
+2026-10-14T15:18:59.255Z #427 reconnecting device=dev-498a2a23 attempt=3
+2026-10-14T15:18:59.264Z #428 blocked reason=bluetoothOff
+2026-10-14T15:19:29.743Z note "Bluetooth on"
+2026-10-14T15:19:33.921Z #429 connected device=dev-498a2a23
+2026-10-14T15:19:45.045Z #430-440 data device=dev-498a2a23 char=12345678-1234-1234-1234-1234567890ac count=11 bytes=44

@@ -1,0 +1,10 @@
+10-14 20:06:54.965 W/bt_stack( 2020): gatt_le_connect_cback  connected : 1, reason : 0
+10-14 20:07:05.755 D/BluetoothAdapterService( 2020): updateDataBase() bondstate : BluetoothDevice.BOND_BONDING (11)
+10-14 20:07:05.757 I/BluetoothBondStateMachine( 2020): Bond State Change Intent:<ADDR> BOND_NONE => BOND_BONDING
+10-14 20:07:05.783 I/NearbyDiscovery( 2647): FastPairController: handleBondBonding: Received BONDING state, temporarily disabling notifications. [CONTEXT service_id=265 ]
+10-14 20:07:13.301 D/BluetoothBondStateMachine( 2020): Change to BONDED for recovery, <ADDR>
+10-14 20:07:13.310 D/BluetoothAdapterService( 2020): updateDataBase() bondstate : BluetoothDevice.BOND_BONDED (12)
+10-14 20:07:13.314 I/BluetoothBondStateMachine( 2020): Bond State Change Intent:<ADDR> BOND_BONDING => BOND_BONDED
+10-14 20:10:21.216 W/bt_stack( 2020): gatt_le_connect_cback  connected : 0, reason : 19
+10-14 20:11:16.086 W/bt_stack( 2020): gatt_le_connect_cback  connected : 1, reason : 0
+10-14 20:11:16.723 E/BluetoothBondStateMachine( 2020): In stable state, received invalid newState: BOND_BONDED

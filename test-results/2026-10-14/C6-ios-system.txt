@@ -1,0 +1,4 @@
+2026-10-14 20:11:09.986705 bluetoothd{bluetoothd}[97] <NOTICE>: [BTGlobalTCCNames] LeDeviceManager::checkForBTTCCNamesCache fScreenState:1 fStackStarted:1 fDeviceFirstUnlocked:1 fDeviceLocked:0 fNameSearchActiveScanCounter:1 LastActiveScanTime:0 minutes ago
+2026-10-14 20:11:14.887740 bluetoothd{bluetoothd}[97] <INFO>: Central Restoring - bundleId com.ahmadhussain.bleKeeperExample, restorationId: com.ahmadhussain.ble_keeper.central, servicesToScan: {(
+2026-10-14 20:11:16.282177 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: NonUserInteractive) (endowments: (null))
+2026-10-14 20:11:17.243961 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: Background) (endowments: (null))
