@@ -276,6 +276,7 @@ internal class KeeperRuntime private constructor(context: Context) {
                 state.lastReportedExitMs,
                 hadSessions,
                 updatedAt,
+                Build.VERSION.SDK_INT,
             )
         ) {
             publish(

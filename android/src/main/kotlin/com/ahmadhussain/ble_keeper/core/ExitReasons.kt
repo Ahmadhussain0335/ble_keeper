@@ -14,16 +14,25 @@ internal object ExitReasons {
     /** ApplicationExitInfo.REASON_USER_REQUESTED. */
     const val REASON_USER_REQUESTED = 10
 
-    /** Exits this close to the last app update are treated as the update. */
-    const val UPDATE_WINDOW_MS = 60_000L
+    /** API 33 added REASON_PACKAGE_UPDATED; from then on updates are not REASON_USER_REQUESTED. */
+    const val PACKAGE_UPDATED_REASON_API = 33
+
+    /**
+     * The installer kills the old process at install time, just before
+     * PackageInfo.lastUpdateTime is set. Only exits in this narrow window are
+     * treated as the update (a wide window hid real force-stops shortly
+     * after an update, hardware test B1 / F3).
+     */
+    const val UPDATE_WINDOW_BEFORE_MS = 30_000L
+    const val UPDATE_WINDOW_AFTER_MS = 5_000L
 
     /**
      * True when the latest exit was a user force-stop that has not been
      * reported yet and devices were being kept connected at the time.
      *
-     * Before API 33 (REASON_PACKAGE_UPDATED) an app update can also be
-     * recorded as REASON_USER_REQUESTED; an exit within [UPDATE_WINDOW_MS] of
-     * [appUpdatedAtMs] (PackageInfo.lastUpdateTime) is therefore ignored.
+     * Below API 33 an app update can also be recorded as
+     * REASON_USER_REQUESTED, so an exit from [UPDATE_WINDOW_BEFORE_MS] before
+     * to [UPDATE_WINDOW_AFTER_MS] after [appUpdatedAtMs] is ignored there.
      */
     fun isUnreportedForceStop(
         reason: Int,
@@ -31,8 +40,15 @@ internal object ExitReasons {
         lastReportedExitMs: Long,
         hadSessions: Boolean,
         appUpdatedAtMs: Long? = null,
+        sdkInt: Int = PACKAGE_UPDATED_REASON_API,
     ): Boolean = hadSessions &&
         reason == REASON_USER_REQUESTED &&
         exitTimestampMs > lastReportedExitMs &&
-        (appUpdatedAtMs == null || kotlin.math.abs(exitTimestampMs - appUpdatedAtMs) > UPDATE_WINDOW_MS)
+        !isUpdateKill(exitTimestampMs, appUpdatedAtMs, sdkInt)
+
+    private fun isUpdateKill(exitTimestampMs: Long, appUpdatedAtMs: Long?, sdkInt: Int): Boolean {
+        if (sdkInt >= PACKAGE_UPDATED_REASON_API || appUpdatedAtMs == null) return false
+        val delta = exitTimestampMs - appUpdatedAtMs
+        return delta >= -UPDATE_WINDOW_BEFORE_MS && delta <= UPDATE_WINDOW_AFTER_MS
+    }
 }
