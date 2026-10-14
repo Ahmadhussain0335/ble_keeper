@@ -1,0 +1,13 @@
+10-14 12:39:23.371 31194 31216 D BluetoothGatt: onServiceChanged() - Device=<PHONE_B_IDENTITY>
+10-14 12:39:23.376 31194 32089 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 12:39:23.466 31194 31216 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 12:39:23.469 31194 32089 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 12:39:23.476 31194 31216 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 12:39:49.967 31194 31216 D BluetoothGatt: onServiceChanged() - Device=<PHONE_B_IDENTITY>
+10-14 12:39:49.973 31194 32089 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 12:39:50.466 31194 31216 D BluetoothGatt: onConnectionUpdated() - Device=<PHONE_B_IDENTITY> interval=6 latency=0 timeout=500 status=0
+10-14 12:39:50.686 31194 31216 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 12:39:50.690 31194 32089 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 12:39:50.697 31194 31216 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 12:39:50.701 31194 32089 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 12:39:50.781 31194 31216 D BluetoothGatt: onConnectionUpdated() - Device=<PHONE_B_IDENTITY> interval=36 latency=0 timeout=500 status=0

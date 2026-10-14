@@ -1,0 +1,30 @@
+10-14 12:57:54.796  1692  2435 I ActivityManager: Process com.ahmadhussain.ble_keeper_example (pid 4809) has died: prcp FGS (585,3005)
+10-14 12:57:54.804  1692  2435 W ActivityManager: Scheduling restart of crashed service com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService in 1000ms for start-requested
+10-14 12:57:55.838  1692  1748 I ActivityManager: Start proc 5154:com.ahmadhussain.ble_keeper_example/u0a308 for service {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService}
+10-14 12:57:56.168  5154  5173 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 12:57:56.172  5154  5173 D BluetoothGatt: registerApp()
+10-14 12:57:56.183  5154  5173 D BluetoothGatt: registerApp() - UUID=4e1343b3-f29a-43f6-bd86-9420b0fe16ea
+10-14 12:57:56.187  5154  5165 D BluetoothGatt: onClientRegistered() - status=0 clientIf=51
+10-14 12:57:56.272  5154  5179 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 12:57:56.612  5154  5202 I flutter : The Dart VM service is listening on http://127.0.0.1:34649/Gg8L7E4CQcM=/
+10-14 12:57:56.895  5154  5165 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=51 connected=true device=<PHONE_B_IDENTITY>
+10-14 12:57:56.901  5154  5173 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 12:57:56.907  5154  5154 I flutter : ble_keeper background: RestoredAfterKill
+10-14 12:57:57.275  5154  5165 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 12:57:57.277  5154  5173 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 12:57:57.461  5154  5165 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 12:57:57.467  5154  5173 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 12:57:57.644  5154  5154 I flutter : ble_keeper background: Connected
+10-14 12:57:58.412  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:57:59.440  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:00.432  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:01.421  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:02.456  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:03.492  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:04.437  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:05.473  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:06.463  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:07.453  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:08.488  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:09.479  5154  5154 I flutter : ble_keeper background: Data
+10-14 12:58:10.472  5154  5154 I flutter : ble_keeper background: Data

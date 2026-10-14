@@ -214,7 +214,7 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
         state = state.copy(lastCommand = command)
         log("command \"$command\" from ${device.address}")
         when (command) {
-            "disconnect" -> server?.cancelConnection(device)
+            "disconnect" -> dropLink(device)
             "reboot" -> reboot()
             "silent" -> {
                 silentUntil = SystemClock.elapsedRealtime() + SILENT_MS
@@ -224,10 +224,22 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
         }
     }
 
+    /**
+     * BluetoothGattServer.cancelConnection() is ignored for a link the
+     * central opened (seen on Android 13 / One UI 5.1): the server does not
+     * own it. Calling connect(device, false) first makes the server a client
+     * of that link, after which cancelConnection() drops it.
+     */
+    private fun dropLink(device: BluetoothDevice) {
+        val s = server ?: return
+        s.connect(device, false)
+        main.postDelayed({ s.cancelConnection(device) }, 200)
+    }
+
     /** Simulates a device reboot: drop links, stop advertising 10 s, counter to 0. */
     private fun reboot() {
         rebooting = true
-        centrals.values.toList().forEach { server?.cancelConnection(it) }
+        centrals.values.toList().forEach { dropLink(it) }
         setAdvertising(false)
         counter = 0
         silentUntil = 0

@@ -1,0 +1,31 @@
+10-14 13:01:40.720  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:41.719  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:42.753  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:43.742  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:44.732  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:45.768  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:46.758  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:47.748  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:48.776  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:49.774  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:50.760  5154  5154 I flutter : ble_keeper background: Data
+10-14 13:01:51.651  1692  1707 I ActivityManager: Force stopping com.ahmadhussain.ble_keeper_example appid=10308 user=0: from pid 5785
+10-14 13:01:51.658  1692  1707 I ActivityManager: Killing 5154:com.ahmadhussain.ble_keeper_example/u0a308 (adj 200): stop com.ahmadhussain.ble_keeper_example due to from pid 5785
+10-14 13:03:06.513  1692  2996 I ActivityManager: android.util.AndroidRuntimeException: Activity could not be started for Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 xflg=0x4 pkg=com.ahmadhussain.ble_keeper_example cmp=com.ahmadhussain.ble_keeper_example/.MainActivity }
+10-14 13:03:06.593  1692  2996 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity bnds=[539,1654][788,1935]} with LAUNCH_SINGLE_TOP from uid 10130 (sr=35098523) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+10-14 13:03:06.631  1692  1748 I ActivityManager: Start proc 5898:com.ahmadhussain.ble_keeper_example/u0a308 for next-top-activity {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper_example.MainActivity}
+10-14 13:03:06.945  1692  1962 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.ahmadhussain.ble_keeper.action.BOOT xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 13:03:07.092  5898  5932 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 13:03:07.373  5898  5963 I flutter : The Dart VM service is listening on http://127.0.0.1:43757/mMuKN2Kqs_I=/
+10-14 13:03:07.738  5898  5973 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 13:03:07.741  5898  5973 D BluetoothGatt: registerApp()
+10-14 13:03:07.743  5898  5973 D BluetoothGatt: registerApp() - UUID=d944c276-bc16-464a-b212-31c3e929a429
+10-14 13:03:07.749  5898  5916 D BluetoothGatt: onClientRegistered() - status=0 clientIf=52
+10-14 13:03:08.479  5898  5916 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=52 connected=true device=<PHONE_B_IDENTITY>
+10-14 13:03:08.485  5898  5973 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 13:03:08.873  5898  5916 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 13:03:08.877  5898  5973 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 13:03:09.051  5898  5916 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 13:03:09.053  5898  5973 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 13:03:09.820  1692  1733 I ActivityTaskManager: Displayed com.ahmadhussain.ble_keeper_example/.MainActivity for user 0: +3s234ms
+10-14 13:03:09.822  1692  1733 I ActivityTaskManager: Fully drawn com.ahmadhussain.ble_keeper_example/.MainActivity: +3s234ms

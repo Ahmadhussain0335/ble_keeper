@@ -1,0 +1,19 @@
+10-14 12:55:37.702  1692  1794 I ActivityManager: Killing 31194:com.ahmadhussain.ble_keeper_example/u0a308 (adj 200): permissions revoked
+10-14 12:55:37.720  1692  1794 W ActivityManager: Scheduling restart of crashed service com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService in 1000ms for start-requested
+10-14 12:55:38.750  1692  1748 I ActivityManager: Start proc 4809:com.ahmadhussain.ble_keeper_example/u0a308 for service {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService}
+10-14 12:55:52.801  1692  2879 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity bnds=[539,1654][788,1935]} with LAUNCH_SINGLE_TOP from uid 10130 (sr=35098523) (BAL_ALLOW_VISIBLE_WINDOW) result code=2
+10-14 12:55:52.992  4809  4879 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 12:55:53.251  4809  4903 I flutter : The Dart VM service is listening on http://127.0.0.1:40615/cuHhyZnp4LE=/
+10-14 12:55:55.410  1692  1733 I ActivityTaskManager: Displayed com.ahmadhussain.ble_keeper_example/.MainActivity for user 0: +2s607ms
+10-14 12:55:55.410  1692  1733 I ActivityTaskManager: Fully drawn com.ahmadhussain.ble_keeper_example/.MainActivity: +2s607ms
+10-14 12:56:20.942  1692  2397 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.ahmadhussain.ble_keeper.action.KEEP xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 12:56:20.967  4809  4981 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 12:56:20.967  4809  4981 D BluetoothGatt: registerApp()
+10-14 12:56:20.975  4809  4981 D BluetoothGatt: registerApp() - UUID=39be0ec9-febe-441c-9840-e19195c700a6
+10-14 12:56:20.980  4809  4822 D BluetoothGatt: onClientRegistered() - status=0 clientIf=50
+10-14 12:56:21.755  4809  4822 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=50 connected=true device=<PHONE_B_IDENTITY>
+10-14 12:56:21.758  4809  4981 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 12:56:22.144  4809  4822 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 12:56:22.147  4809  4981 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 12:56:22.323  4809  4822 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 12:56:22.327  4809  4981 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true

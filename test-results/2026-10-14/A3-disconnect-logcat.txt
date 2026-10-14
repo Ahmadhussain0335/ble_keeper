@@ -1,0 +1,2 @@
+10-14 12:41:50.107 31194 31216 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=72 connected=true device=<PHONE_B_IDENTITY>
+10-14 12:41:50.113 31194 31216 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
