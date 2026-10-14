@@ -405,8 +405,10 @@ disk write each:
 2026-10-13T09:33:00.000Z #43-102 data device=dev-3f2a91c4 char=12345678-1234-1234-1234-1234567890ac count=60 bytes=240
 ```
 
-Lines are written within about 2 s; a process kill can lose the newest
-seconds of the log.
+State events are written within about 2 s. Data counts are kept in memory
+until the minute's summary line is written, and any open summary is written
+before each state event, so a process kill can lose up to a minute of Data
+counts (never state events older than about 2 s).
 
 `exportLog()` returns the path of a single file you can share;
 `clearLog()` deletes the log and exported copies.

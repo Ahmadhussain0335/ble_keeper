@@ -64,7 +64,15 @@ internal class KeeperRuntime private constructor(context: Context) {
 
     val hub = EventHub(
         onPublished = { e ->
-            if (e.type == PEventType.DATA) dataAggregator.add(e) else log.append(formatter.format(e))
+            if (e.type == PEventType.DATA) {
+                dataAggregator.add(e)
+            } else {
+                // Close the open Data summary first: keeps the log in order and
+                // limits what a process kill can lose to Data since the last
+                // state event or minute boundary.
+                flushLogSummaries()
+                log.append(formatter.format(e))
+            }
             scheduleLogTick()
         },
         onDropped = { n ->

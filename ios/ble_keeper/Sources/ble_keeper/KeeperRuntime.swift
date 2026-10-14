@@ -65,6 +65,8 @@ final class KeeperRuntime {
       if e.type == .data {
         self.dataAggregator.add(e)
       } else {
+        // Close the open Data summary first (log order; less lost on a kill).
+        self.flushLogSummaries()
         self.log.append(self.formatter.format(e))
       }
       self.scheduleLogTick()
