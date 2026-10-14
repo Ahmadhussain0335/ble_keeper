@@ -122,6 +122,20 @@ class _HomePageState extends State<HomePage> {
                     onPressed: _permissions,
                     child: const Text('Permissions'),
                   ),
+                // Debug only, for checklist test 15: press Home within 10 s so
+                // keepConnected runs while the app is in the background.
+                if (kDebugMode && Platform.isAndroid)
+                  OutlinedButton(
+                    onPressed: () {
+                      final id = _deviceId.text;
+                      _snack('keepConnected in 10 s: press Home now');
+                      Future<void>.delayed(
+                        const Duration(seconds: 10),
+                        () => _c.keep(id),
+                      );
+                    },
+                    child: const Text('Keep connected in 10 s (debug)'),
+                  ),
               ],
             ),
             const Divider(height: 32),

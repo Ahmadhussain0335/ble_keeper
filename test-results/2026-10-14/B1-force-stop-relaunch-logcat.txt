@@ -1,0 +1,47 @@
+10-14 13:29:45.058  9211  9211 I flutter : ble_keeper background: Data
+10-14 13:29:46.049  9211  9211 I flutter : ble_keeper background: Data
+10-14 13:29:47.037  9211  9211 I flutter : ble_keeper background: Data
+10-14 13:29:48.071  9211  9211 I flutter : ble_keeper background: Data
+10-14 13:29:49.064  9211  9211 I flutter : ble_keeper background: Data
+10-14 13:29:50.056  9211  9211 I flutter : ble_keeper background: Data
+10-14 13:29:50.214  1692  2397 I ActivityManager: Force stopping com.ahmadhussain.ble_keeper_example appid=10308 user=0: from pid 9346
+10-14 13:29:50.219  1692  2397 I ActivityManager: Killing 9211:com.ahmadhussain.ble_keeper_example/u0a308 (adj 200): stop com.ahmadhussain.ble_keeper_example due to from pid 9346
+10-14 13:30:15.385  1692  3828 I ActivityManager: android.util.AndroidRuntimeException: Activity could not be started for Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 xflg=0x4 pkg=com.ahmadhussain.ble_keeper_example cmp=com.ahmadhussain.ble_keeper_example/.MainActivity }
+10-14 13:30:15.477  1692  1812 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity bnds=[539,1654][788,1935]} with LAUNCH_SINGLE_TOP from uid 10130 (sr=35098523) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+10-14 13:30:15.526  1692  1748 I ActivityManager: Start proc 9464:com.ahmadhussain.ble_keeper_example/u0a308 for next-top-activity {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper_example.MainActivity}
+10-14 13:30:16.089  9464  9492 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 13:30:16.543  9464  9513 I flutter : The Dart VM service is listening on http://127.0.0.1:33971/ydN1mBndGYU=/
+10-14 13:30:18.871  1692  2996 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.ahmadhussain.ble_keeper.action.KEEP xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 13:30:18.880  1692  1733 I ActivityTaskManager: Displayed com.ahmadhussain.ble_keeper_example/.MainActivity for user 0: +3s408ms
+10-14 13:30:18.880  1692  1733 I ActivityTaskManager: Fully drawn com.ahmadhussain.ble_keeper_example/.MainActivity: +3s408ms
+10-14 13:30:19.113  9464  9535 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 13:30:19.113  9464  9535 D BluetoothGatt: registerApp()
+10-14 13:30:19.114  9464  9535 D BluetoothGatt: registerApp() - UUID=4879c717-4ce1-4a28-80b0-67e22a524f94
+10-14 13:30:19.117  9464  9475 D BluetoothGatt: onClientRegistered() - status=0 clientIf=57
+10-14 13:30:21.627  9464  9475 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=57 connected=true device=<PHONE_B_IDENTITY>
+10-14 13:30:21.632  9464  9535 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 13:30:22.180  9464  9475 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 13:30:22.183  9464  9535 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 13:30:22.945  9464  9475 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 13:30:22.949  9464  9535 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 13:31:24.927  1692  3213 I ActivityManager: Force stopping com.ahmadhussain.ble_keeper_example appid=10308 user=0: from pid 9630
+10-14 13:31:24.928  1692  3213 I ActivityManager: Killing 9464:com.ahmadhussain.ble_keeper_example/u0a308 (adj 0): stop com.ahmadhussain.ble_keeper_example due to from pid 9630
+10-14 13:31:24.933  1692  3213 W ActivityTaskManager: Force removing ActivityRecord{236257542 u0 com.ahmadhussain.ble_keeper_example/.MainActivity t51 f}}: app died, no saved state
+10-14 13:31:52.189  1692  3043 I ActivityManager: android.util.AndroidRuntimeException: Activity could not be started for Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 xflg=0x4 pkg=com.ahmadhussain.ble_keeper_example cmp=com.ahmadhussain.ble_keeper_example/.MainActivity }
+10-14 13:31:52.274  1692  3043 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity bnds=[539,1654][788,1935]} with LAUNCH_SINGLE_TOP from uid 10130 (sr=35098523) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+10-14 13:31:52.321  1692  1748 I ActivityManager: Start proc 9695:com.ahmadhussain.ble_keeper_example/u0a308 for next-top-activity {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper_example.MainActivity}
+10-14 13:31:52.853  9695  9724 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 13:31:53.219  9695  9746 I flutter : The Dart VM service is listening on http://127.0.0.1:40291/uvMfO97GHI8=/
+10-14 13:31:55.269  1692  1733 I ActivityTaskManager: Displayed com.ahmadhussain.ble_keeper_example/.MainActivity for user 0: +3s4ms
+10-14 13:31:55.270  1692  1733 I ActivityTaskManager: Fully drawn com.ahmadhussain.ble_keeper_example/.MainActivity: +3s4ms
+10-14 13:31:55.271  1692  3830 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.ahmadhussain.ble_keeper.action.KEEP xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 13:31:55.608  9695  9762 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 13:31:55.608  9695  9762 D BluetoothGatt: registerApp()
+10-14 13:31:55.609  9695  9762 D BluetoothGatt: registerApp() - UUID=c07a7b27-b3c8-4181-b99e-9bcb00b849e3
+10-14 13:31:55.615  9695  9705 D BluetoothGatt: onClientRegistered() - status=0 clientIf=58
+10-14 13:31:56.261  9695  9763 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=58 connected=true device=<PHONE_B_IDENTITY>
+10-14 13:31:56.267  9695  9762 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 13:31:56.638  9695  9763 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 13:31:56.639  9695  9762 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 13:31:56.957  9695  9763 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 13:31:56.960  9695  9762 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true

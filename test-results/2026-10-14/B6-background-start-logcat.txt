@@ -1,0 +1,9 @@
+10-14 13:41:15.894  1692  1737 I ActivityTaskManager: done cause=notifyWindowsDrawn timestamp=43241318969071 info=TransitionInfo{696f940 a=ActivityRecord{263786178 u0 com.ahmadhussain.ble_keeper_example/.MainActivity t53} d=true}
+10-14 13:42:03.202  1692  1737 I ActivityTaskManager: done cause=notifyWindowsDrawn timestamp=43288627124537 info=TransitionInfo{b013288 a=ActivityRecord{263786178 u0 com.ahmadhussain.ble_keeper_example/.MainActivity t53} d=true}
+10-14 13:42:05.236 10504 10629 D BluetoothGatt: cancelOpen() - device: <PHONE_B_IDENTITY>
+10-14 13:42:05.253 10504 10629 D BluetoothGatt: close()
+10-14 13:42:05.255 10504 10629 D BluetoothGatt: unregisterApp() - mClientIf=60
+10-14 13:42:05.259 10504 10537 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=60 connected=false device=<PHONE_B_IDENTITY>
+10-14 13:42:16.403  1692  1707 W ActivityManager: Background started FGS: Disallowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: LAST; uidBFSL: n/a; intent: Intent { act=com.ahmadhussain.ble_keeper.action.KEEP xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:DENIED; tempAllowListReason:<null>; allowWiu:-1; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 13:42:16.404  1692  1707 W ActivityManager: startForegroundService() not allowed due to mAllowStartForeground false: service com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService
+10-14 13:43:07.857  1692  1737 I ActivityTaskManager: done cause=notifyWindowsDrawn timestamp=43353282150452 info=TransitionInfo{e779451 a=ActivityRecord{263786178 u0 com.ahmadhussain.ble_keeper_example/.MainActivity t53} d=true}
