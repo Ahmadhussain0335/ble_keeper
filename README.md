@@ -92,7 +92,7 @@ Only tests that passed on real devices are listed. Test IDs are the numbers in
 
 | Device | OS version | Test IDs passed | Date |
 |---|---|---|---|
-| Samsung Galaxy A53 5G (central, debug and release builds; peripheral: Galaxy S20 5G, Android 13, running `tools/android_test_peripheral`, bonded) | Android 16, One UI 8.0 | 1 (20 min screen off in forced deep Doze), 2, 3, 4, 9, 13 (swipe from recents, notification and data kept; battery part not run), 14; also app update (`MY_PACKAGE_REPLACED`) and peer-initiated link loss with automatic reconnect | 2026-10-14 |
+| Samsung Galaxy A53 5G (central, debug and release builds; peripheral: Galaxy S20 5G, Android 13, running `tools/android_test_peripheral`, bonded) | Android 16, One UI 8.0 | 1 (20 min screen off in forced deep Doze), 2, 3, 4, 8, 9, 13 (swipe from recents + 30 min screen off), 14, 15, 16; also app update (`MY_PACKAGE_REPLACED`), peer-initiated link loss, and the peripheral disappearing for about 80 s and coming back (pending reconnect, no polling) | 2026-10-14 |
 
 ## Install
 

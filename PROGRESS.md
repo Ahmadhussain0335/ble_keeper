@@ -4,6 +4,22 @@ Resume point for "continue from PROGRESS.md". Updated after every step.
 
 Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 
+## Hardware test session (2026-10-14), Phase B (Android extra): done
+
+Fixed and verified on hardware before Phase B: F2 (b287fb1), E1 (bdcb1c0), D1 (2fea712). All tests on Phone A Galaxy A53 5G (Android 16, One UI 8.0), Phone B Galaxy S20 5G peripheral app, bonded.
+
+| Test | Result |
+|---|---|
+| B1 force-stop + relaunch (F2/E1 check) | PASS; found F3 (force-stop within 60 s after an update not reported) |
+| B2 out of range, shielded | NOT TESTED (shielding did not break the link) |
+| B2b peripheral gone ~80 s and back (range-loss proxy) | PASS (pending autoConnect, no polling) |
+| B3 `silent` command | PASS (gap 30 = silence) |
+| B4 notification dismissed | PASS |
+| B5 swipe + 30 min screen off, natural Doze | PASS |
+| B6 keepConnected from background | PASS (`Blocked(foregroundStartNotAllowed)`) |
+
+Open, needs approval: F3. Still needs a fixed-address peripheral (ESP32 / static-address gadget): `disconnect`/`reboot` commands, real out-of-range (status 8), phone reboot, absence > 10 min, test 20.
+
 ## Hardware test session (2026-10-14), Phase A (Android core): done
 
 Setup: Phone A Galaxy A53 5G (Android 16, One UI 8.0) running the example; Phone B Galaxy S20 5G (Android 13) running `tools/android_test_peripheral` (new in this session), phones bonded, session uses Phone B's identity address. Full results and evidence: `test-results/RESULTS.md`, `test-results/2026-10-14/`.
