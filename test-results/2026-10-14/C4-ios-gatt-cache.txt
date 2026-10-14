@@ -1,0 +1,4 @@
+2026-10-14 19:34:52.568940 bluetoothd{bluetoothd}[97] <NOTICE>: statedump: LeConnectionRSSIThresholdState History: 6 entries
+2026-10-14 19:34:55.676899 bluetoothd{bluetoothd}[97] <NOTICE>: statedump: 0x0001 Primary Service      [ serviceUUID: 0x1801, endHandle: 0x0009, discoveredCharacteristics: some ]
+2026-10-14 19:34:55.676997 bluetoothd{bluetoothd}[97] <NOTICE>: statedump: 0x0002 Characteristic       [ valueUUID: 0x2A05, valueHandle: 0x0003, properties: indicate, discoveredDescriptors: all ]
+2026-10-14 19:34:55.677081 bluetoothd{bluetoothd}[97] <NOTICE>: statedump: 0x0014 Primary Service      [ serviceUUID: 0x1800, endHandle: 0xFFFF, discoveredCharacteristics: none ]

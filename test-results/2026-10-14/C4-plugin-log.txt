@@ -1,0 +1,24 @@
+2026-10-14T14:21:09.613Z #157-217 data device=dev-5ea82438 char=12345678-1234-1234-1234-1234567890ac count=61 bytes=244
+2026-10-14T14:22:10.963Z #218-278 data device=dev-5ea82438 char=12345678-1234-1234-1234-1234567890ac count=61 bytes=244
+2026-10-14T14:22:27.640Z note "device=dev-5ea82438 services changed, rediscovering"
+2026-10-14T14:22:27.701Z #279-294 data device=dev-5ea82438 char=12345678-1234-1234-1234-1234567890ac count=16 bytes=64
+2026-10-14T14:22:27.701Z #295 blocked device=dev-5ea82438 reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T14:33:34.344Z #296 disconnected device=dev-5ea82438 reason=stopped
+2026-10-14T14:33:38.925Z #297 blocked device=dev-5ea82438 reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T14:33:38.925Z #298 connected device=dev-5ea82438
+2026-10-14T14:34:32.341Z note "state restored with 1 peripheral(s)"
+2026-10-14T14:34:32.347Z note "Bluetooth on"
+2026-10-14T14:34:32.390Z #1 restoredAfterKill devices=dev-5ea82438
+2026-10-14T14:34:32.347Z #2 blocked device=dev-5ea82438 reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T14:34:32.347Z #3 connected device=dev-5ea82438
+2026-10-14T14:34:36.108Z #4 disconnected device=dev-5ea82438 reason=bluetoothOff
+2026-10-14T14:34:36.108Z #5 blocked reason=bluetoothOff
+2026-10-14T14:34:40.079Z note "Bluetooth on"
+2026-10-14T14:34:41.088Z #6 connected device=dev-5ea82438
+2026-10-14T14:34:46.324Z note "Bluetooth on"
+2026-10-14T14:34:46.364Z #1 blocked reason=userForceQuit detail="best effort: the app was terminated while running, most likely closed from the app switcher; iOS does not relaunch an app after a force-quit"
+2026-10-14T14:34:47.358Z #2 blocked device=dev-5ea82438 reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T14:34:47.358Z #3 connected device=dev-5ea82438
+2026-10-14T14:34:49.266Z #4 disconnected device=dev-5ea82438 reason=stopped
+2026-10-14T14:34:52.100Z #5 blocked device=dev-5ea82438 reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T14:34:52.101Z #6 connected device=dev-5ea82438

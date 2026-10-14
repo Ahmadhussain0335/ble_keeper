@@ -1,0 +1,18 @@
+10-14 19:22:27.709 D/BluetoothGattServer(26616): cancelConnection() - device: <ADDR>
+10-14 19:22:27.710 D/BluetoothGattServer(26616): close()
+10-14 19:22:27.710 D/BluetoothGattServer(26616): unregisterCallback() - mServerIf=6
+10-14 19:27:00.167 D/BluetoothGattServer(26616): registerCallback()
+10-14 19:27:00.167 D/BluetoothGattServer(26616): registerCallback() - UUID=<ID>
+10-14 19:27:00.171 D/BluetoothGattServer(26616): onServerRegistered() - status=0 serverIf=6
+10-14 19:27:00.172 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 19:27:00.173 D/BluetoothGattServer(26616): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 19:27:00.177 D/BluetoothGattServer(26616): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
+10-14 19:31:24.044 D/BluetoothGattServer(26616): cancelConnection() - device: <ADDR>
+10-14 19:31:24.045 D/BluetoothGattServer(26616): close()
+10-14 19:31:24.046 D/BluetoothGattServer(26616): unregisterCallback() - mServerIf=6
+10-14 19:31:26.613 D/BluetoothGattServer(26616): registerCallback()
+10-14 19:31:26.613 D/BluetoothGattServer(26616): registerCallback() - UUID=<ID>
+10-14 19:31:26.616 D/BluetoothGattServer(26616): onServerRegistered() - status=0 serverIf=6
+10-14 19:31:26.616 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 19:31:26.617 D/BluetoothGattServer(26616): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 19:31:26.621 D/BluetoothGattServer(26616): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
