@@ -1,0 +1,86 @@
+10-14 11:56:11.859  1692  3827 I ActivityTaskManager: START u0 {flg=0x10000000 xflg=0x5 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+10-14 11:56:11.903  1692  1748 I ActivityManager: Start proc 31194:com.ahmadhussain.ble_keeper_example/u0a308 for next-top-activity {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper_example.MainActivity}
+10-14 11:56:12.979 31194 31252 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 11:56:13.149 31194 31275 I flutter : The Dart VM service is listening on http://127.0.0.1:43127/E4jQT01Cu2I=/
+10-14 11:56:15.794  1692  1733 I ActivityTaskManager: Displayed com.ahmadhussain.ble_keeper_example/.MainActivity for user 0: +3s943ms
+10-14 11:56:15.795  1692  1733 I ActivityTaskManager: Fully drawn com.ahmadhussain.ble_keeper_example/.MainActivity: +3s943ms
+10-14 11:57:17.923  1692  3835 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.ahmadhussain.ble_keeper.action.KEEP xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 11:57:17.958 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: false
+10-14 11:57:17.958 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:57:17.959 31194 31367 D BluetoothGatt: registerApp() - UUID=64629116-da87-4f83-ab5d-d3622b442462
+10-14 11:57:17.963 31194 31213 D BluetoothGatt: onClientRegistered() - status=0 clientIf=61
+10-14 11:57:18.558 31194 31213 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=61 connected=true device=<PHONE_B_ADDR_1>
+10-14 11:57:18.564 31194 31367 D BluetoothGatt: discoverServices() - device: <PHONE_B_ADDR_1>
+10-14 11:57:18.983 31194 31213 D BluetoothGatt: onConnectionUpdated() - Device=<PHONE_B_ADDR_1> interval=6 latency=0 timeout=500 status=0
+10-14 11:57:19.749 31194 31213 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_ADDR_1> status=0
+10-14 11:57:19.752 31194 31367 D BluetoothGatt: configureMTU() - device: <PHONE_B_ADDR_1> mtu: 517
+10-14 11:57:19.802 31194 31213 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_ADDR_1> mtu=517 status=0
+10-14 11:57:19.806 31194 31367 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 11:57:19.833 31194 31213 D BluetoothGatt: onConnectionUpdated() - Device=<PHONE_B_ADDR_1> interval=36 latency=0 timeout=500 status=0
+10-14 11:58:30.222 31194 31294 D BluetoothGatt: onServiceChanged() - Device=<PHONE_B_ADDR_1>
+10-14 11:58:30.230 31194 31367 D BluetoothGatt: discoverServices() - device: <PHONE_B_ADDR_1>
+10-14 11:58:30.717 31194 31294 D BluetoothGatt: onConnectionUpdated() - Device=<PHONE_B_ADDR_1> interval=6 latency=0 timeout=500 status=0
+10-14 11:58:30.897 31194 31294 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_ADDR_1> status=0
+10-14 11:58:30.902 31194 31367 D BluetoothGatt: configureMTU() - device: <PHONE_B_ADDR_1> mtu: 517
+10-14 11:58:30.908 31194 31294 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_ADDR_1> mtu=517 status=0
+10-14 11:58:30.913 31194 31367 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 11:58:30.987 31194 31294 D BluetoothGatt: onConnectionUpdated() - Device=<PHONE_B_ADDR_1> interval=36 latency=0 timeout=500 status=0
+10-14 11:58:32.573 31194 31294 D BluetoothGatt: onClientConnectionState() - status=19 clientIf=61 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:58:32.577 31194 31294 D BluetoothGatt: unregisterApp() - mClientIf=61
+10-14 11:58:32.585 31194 31367 D BluetoothGatt: close()
+10-14 11:58:33.792 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 11:58:33.793 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:58:33.793 31194 31367 D BluetoothGatt: registerApp() - UUID=7fb6cab7-1f8f-40a9-980a-5598655e7818
+10-14 11:58:33.802 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=62
+10-14 11:58:33.822 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=62 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:58:33.831 31194 31367 D BluetoothGatt: close()
+10-14 11:58:33.835 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=62
+10-14 11:58:35.497 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 11:58:35.498 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:58:35.499 31194 31367 D BluetoothGatt: registerApp() - UUID=31931865-6eb2-4eb7-8549-19b2b6abd847
+10-14 11:58:35.508 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=63
+10-14 11:58:35.529 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=63 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:58:35.537 31194 31367 D BluetoothGatt: close()
+10-14 11:58:35.540 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=63
+10-14 11:58:39.066 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 11:58:39.067 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:58:39.067 31194 31367 D BluetoothGatt: registerApp() - UUID=557a1999-9dcc-4b01-83cd-8ffb22514df0
+10-14 11:58:39.080 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=64
+10-14 11:58:39.101 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=64 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:58:39.107 31194 31367 D BluetoothGatt: close()
+10-14 11:58:39.110 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=64
+10-14 11:58:47.800 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 11:58:47.801 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:58:47.802 31194 31367 D BluetoothGatt: registerApp() - UUID=582672eb-67f9-401b-afbb-28066ed9db86
+10-14 11:58:47.812 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=65
+10-14 11:58:47.834 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=65 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:58:47.841 31194 31367 D BluetoothGatt: close()
+10-14 11:58:47.844 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=65
+10-14 11:59:01.190 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 11:59:01.191 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:59:01.192 31194 31367 D BluetoothGatt: registerApp() - UUID=d08bda2c-6b1d-4968-8a47-9010f20b8f1e
+10-14 11:59:01.204 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=66
+10-14 11:59:01.221 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=66 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:59:01.226 31194 31367 D BluetoothGatt: close()
+10-14 11:59:01.230 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=66
+10-14 11:59:37.636 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 11:59:37.637 31194 31367 D BluetoothGatt: registerApp()
+10-14 11:59:37.638 31194 31367 D BluetoothGatt: registerApp() - UUID=1adb50c2-f429-41e8-ac93-109c51e91a42
+10-14 11:59:37.651 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=67
+10-14 11:59:37.673 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=67 connected=false device=<PHONE_B_ADDR_1>
+10-14 11:59:37.681 31194 31367 D BluetoothGatt: close()
+10-14 11:59:37.684 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=67
+10-14 12:00:36.071 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 12:00:36.072 31194 31367 D BluetoothGatt: registerApp()
+10-14 12:00:36.072 31194 31367 D BluetoothGatt: registerApp() - UUID=7b125223-e7e0-4b2b-9aa9-57677ace5d39
+10-14 12:00:36.082 31194 31294 D BluetoothGatt: onClientRegistered() - status=0 clientIf=68
+10-14 12:00:36.103 31194 31294 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=68 connected=false device=<PHONE_B_ADDR_1>
+10-14 12:00:36.110 31194 31367 D BluetoothGatt: close()
+10-14 12:00:36.113 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=68
+10-14 12:01:28.816 31194 31367 D BluetoothGatt: connect() - device: <PHONE_B_ADDR_1>, auto: true
+10-14 12:01:28.816 31194 31367 D BluetoothGatt: registerApp()
+10-14 12:01:28.817 31194 31367 D BluetoothGatt: registerApp() - UUID=9d1f52a3-dffa-4588-b2b2-9908ece7aa6f
+10-14 12:01:28.828 31194 31213 D BluetoothGatt: onClientRegistered() - status=0 clientIf=69
+10-14 12:01:28.850 31194 31213 D BluetoothGatt: onClientConnectionState() - status=135 clientIf=69 connected=false device=<PHONE_B_ADDR_1>
+10-14 12:01:28.856 31194 31367 D BluetoothGatt: close()
+10-14 12:01:28.860 31194 31367 D BluetoothGatt: unregisterApp() - mClientIf=69

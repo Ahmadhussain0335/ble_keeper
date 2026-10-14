@@ -1,0 +1,22 @@
+2026-10-14T06:57:19.885Z #1 connected device=<PHONE_B_ADDR_1>
+2026-10-14T06:58:19.936Z #2-2 data device=<PHONE_B_ADDR_1> char=12345678-1234-1234-1234-1234567890ac count=1 bytes=4
+2026-10-14T06:58:30.225Z note "device=<PHONE_B_ADDR_1> services changed, rediscovering"
+2026-10-14T06:58:32.586Z #4 disconnected device=<PHONE_B_ADDR_1> reason=peerTerminated code=19
+2026-10-14T06:58:32.587Z #5 reconnecting device=<PHONE_B_ADDR_1> attempt=1
+2026-10-14T06:58:33.842Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T06:58:33.846Z #6 reconnecting device=<PHONE_B_ADDR_1> attempt=2
+2026-10-14T06:58:35.548Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T06:58:35.552Z #7 reconnecting device=<PHONE_B_ADDR_1> attempt=3
+2026-10-14T06:58:39.117Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T06:58:39.121Z #8 reconnecting device=<PHONE_B_ADDR_1> attempt=4
+2026-10-14T06:58:47.852Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T06:58:47.857Z #9 reconnecting device=<PHONE_B_ADDR_1> attempt=5
+2026-10-14T06:59:01.238Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T06:59:01.244Z #10 reconnecting device=<PHONE_B_ADDR_1> attempt=6
+2026-10-14T06:59:31.562Z #3-3 data device=<PHONE_B_ADDR_1> char=12345678-1234-1234-1234-1234567890ac count=1 bytes=4
+2026-10-14T06:59:37.694Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T06:59:37.697Z #11 reconnecting device=<PHONE_B_ADDR_1> attempt=7
+2026-10-14T07:00:36.121Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T07:00:36.126Z #12 reconnecting device=<PHONE_B_ADDR_1> attempt=8
+2026-10-14T07:01:28.868Z note "device=<PHONE_B_ADDR_1> connect attempt or setup failed, status 135"
+2026-10-14T07:01:28.873Z #13 reconnecting device=<PHONE_B_ADDR_1> attempt=9

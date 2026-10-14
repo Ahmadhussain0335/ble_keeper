@@ -70,3 +70,17 @@ plugin failure**. Check the address shown in the example app's scan before
 and after such a test. These tests need a fixed-address peripheral (the
 ESP32 sketch, or a BLE gadget with a static address); see the "Test device"
 column in `tools/HARDWARE_CHECKLIST.md`.
+
+### Workaround: bond the two phones
+
+Pair the central phone with the peripheral phone once in Android Settings >
+Bluetooth, then keep the peripheral connected by its **identity address**
+(Settings > About phone > Status > Bluetooth address on the peripheral
+phone, or the address shown in the central's bonded-devices list). The bond
+gives the central the peripheral's identity resolving key, so the rotating
+private addresses can be resolved. Seen on 2026-10-14 (Galaxy A53 central,
+Galaxy S20 peripheral): without the bond the address changed after the first
+disconnect; with the bond the plugin connected by identity address.
+Reconnects across address changes are checked by the hardware tests (see
+`test-results/RESULTS.md`). The plugin itself never bonds.
+
