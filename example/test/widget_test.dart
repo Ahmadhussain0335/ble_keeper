@@ -8,6 +8,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fake_platform.dart';
 
 void main() {
+  testWidgets('prefills the device field after a restart', (tester) async {
+    final fake = FakePlatform()..active = ['AA:BB:CC:DD:EE:FF'];
+    BleKeeperPlatform.instance = fake;
+    final controller = DeviceController(BleKeeper.instance);
+
+    await tester.pumpWidget(ExampleApp(controller: controller));
+    await tester.pump();
+
+    expect(find.text('AA:BB:CC:DD:EE:FF'), findsOneWidget);
+  });
+
   testWidgets('shows counter and missed values from events', (tester) async {
     final fake = FakePlatform();
     BleKeeperPlatform.instance = fake;

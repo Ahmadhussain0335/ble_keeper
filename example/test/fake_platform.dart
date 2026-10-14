@@ -35,6 +35,11 @@ class FakePlatform extends BleKeeperPlatform {
     writes.add(value);
   }
 
+  List<String> active = [];
+
+  @override
+  Future<List<String>> activeDeviceIds() async => active;
+
   @override
   Future<String> exportLog() async => '/tmp/log';
 

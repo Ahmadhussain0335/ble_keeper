@@ -26,6 +26,15 @@ class _HomePageState extends State<HomePage> {
   DeviceController get _c => widget.controller;
 
   @override
+  void initState() {
+    super.initState();
+    // After a restart the plugin still keeps the device connected; show it.
+    _c.adoptActiveDevice().then((id) {
+      if (id != null && mounted && _deviceId.text.isEmpty) _deviceId.text = id;
+    });
+  }
+
+  @override
   void dispose() {
     _deviceId.dispose();
     super.dispose();

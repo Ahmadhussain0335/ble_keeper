@@ -20,6 +20,26 @@ void main() {
 
   tearDown(() => c.dispose());
 
+  test('adopts a device the plugin already keeps connected', () async {
+    fake.active = [id];
+    expect(await c.adoptActiveDevice(), id);
+    expect(c.state.value.deviceId, id);
+    await c.sendCommand('silent');
+    expect(fake.calls, ['write $id']);
+  });
+
+  test('adopts nothing when no device is kept', () async {
+    expect(await c.adoptActiveDevice(), isNull);
+    expect(c.state.value.deviceId, isNull);
+  });
+
+  test('does not replace a device chosen in this run', () async {
+    await c.keep(id);
+    fake.active = ['11:22:33:44:55:66'];
+    expect(await c.adoptActiveDevice(), isNull);
+    expect(c.state.value.deviceId, id);
+  });
+
   test('keep sets the device and connecting state', () async {
     await c.keep(' $id ');
     expect(fake.calls, ['keep $id']);

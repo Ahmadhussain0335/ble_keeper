@@ -77,6 +77,21 @@ class DeviceController {
   final ValueNotifier<DeviceState> state = ValueNotifier(const DeviceState());
   late final StreamSubscription<KeeperEvent> _sub;
 
+  /// Picks up a device the plugin already keeps connected (persisted from an
+  /// earlier run), so Stop and the command buttons work after a restart.
+  /// Returns the adopted device ID, or null when nothing is kept.
+  Future<String?> adoptActiveDevice() async {
+    try {
+      final ids = await _keeper.activeDeviceIds();
+      if (ids.isEmpty || state.value.deviceId != null) return null;
+      state.value = state.value.copyWith(deviceId: ids.first);
+      return ids.first;
+    } on Object catch (e) {
+      _problem('activeDeviceIds failed: $e');
+      return null;
+    }
+  }
+
   Future<void> keep(String deviceId) async {
     final id = deviceId.trim();
     _gaps.reset();
