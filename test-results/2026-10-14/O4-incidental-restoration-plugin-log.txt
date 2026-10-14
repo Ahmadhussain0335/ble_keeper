@@ -1,0 +1,10 @@
+2026-10-14T12:23:58.900Z note "Bluetooth on"
+2026-10-14T12:23:58.937Z #1 blocked reason=userForceQuit detail="best effort: not relaunched by Core Bluetooth since the last launch; most likely closed from the app switcher"
+2026-10-14T12:24:01.764Z #2 connected device=dev-7d29aac8
+2026-10-14T12:25:57.258Z note "state restored with 1 peripheral(s)"
+2026-10-14T12:25:57.260Z note "Bluetooth on"
+2026-10-14T12:25:57.320Z #1 restoredAfterKill devices=dev-7d29aac8
+2026-10-14T12:25:57.305Z #2 blocked device=dev-7d29aac8 reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T12:25:57.305Z #3 connected device=dev-7d29aac8
+2026-10-14T12:25:58.352Z #4 disconnected device=dev-7d29aac8 reason=peerTerminated code=7
+2026-10-14T12:25:58.352Z #5 reconnecting device=dev-7d29aac8 attempt=1

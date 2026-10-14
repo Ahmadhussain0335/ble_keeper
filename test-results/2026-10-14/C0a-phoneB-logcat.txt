@@ -1,0 +1,60 @@
+10-14 18:21:01.273 D/BluetoothGattServer(25357): registerCallback()
+10-14 18:21:01.274 D/BluetoothGattServer(25357): registerCallback() - UUID=<ID>
+10-14 18:21:01.276 D/BluetoothGattServer(25357): onServerRegistered() - status=0 serverIf=6
+10-14 18:21:01.277 D/BluetoothGattServer(25357): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 18:21:01.279 D/BluetoothGattServer(25357): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
+10-14 18:21:26.363 W/bt_stack( 2020): gatt_le_connect_cback  connected : 1, reason : 0
+10-14 18:21:26.364 D/BluetoothGattServer(25357): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 18:21:26.785 D/BluetoothGattServer(25357): onPhyUpdate() - device=<ADDR>, txPHy=2, rxPHy=2
+10-14 18:21:26.878 D/BluetoothGattServer(25357): onMtuChanged() - device=<ADDR>, mtu=517
+10-14 18:21:41.785 D/BluetoothGattServer(25357): onConnectionUpdated() - Device=<ADDR> interval=24 latency=0 timeout=72 status=59
+10-14 18:21:44.464 D/BluetoothGattServer(25357): onConnectionUpdated() - Device=<ADDR> interval=24 latency=0 timeout=72 status=0
+10-14 18:23:57.445 W/bt_stack( 2020): gatt_le_connect_cback  connected : 0, reason : 19
+10-14 18:23:57.445 W/bt_stack( 2020): [WARNING:gatt_main.cc(498)] gatt_le_connect_cback: srv_chg detected
+10-14 18:23:58.371 D/BluetoothGattServer(26616): registerCallback()
+10-14 18:23:58.371 D/BluetoothGattServer(26616): registerCallback() - UUID=<ID>
+10-14 18:23:58.374 D/BluetoothGattServer(26616): onServerRegistered() - status=0 serverIf=6
+10-14 18:23:58.375 D/BluetoothGattServer(26616): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 18:23:58.377 D/BluetoothGattServer(26616): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
+10-14 18:24:04.048 W/bt_stack( 2020): gatt_le_connect_cback  connected : 1, reason : 0
+10-14 18:24:04.051 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 18:24:04.491 D/BluetoothGattServer(26616): onPhyUpdate() - device=<ADDR>, txPHy=2, rxPHy=2
+10-14 18:24:04.741 D/BluetoothGattServer(26616): onMtuChanged() - device=<ADDR>, mtu=293
+10-14 18:25:17.263 D/BluetoothGattServer(26616): cancelConnection() - device: <ADDR>
+10-14 18:25:17.265 D/BluetoothGattServer(26616): close()
+10-14 18:25:17.265 D/BluetoothGattServer(26616): unregisterCallback() - mServerIf=6
+10-14 18:25:19.047 W/bt_stack( 2020): gatt_le_connect_cback  connected : 0, reason : 19
+10-14 18:25:21.028 D/BluetoothGattServer(26616): registerCallback()
+10-14 18:25:21.028 D/BluetoothGattServer(26616): registerCallback() - UUID=<ID>
+10-14 18:25:21.033 D/BluetoothGattServer(26616): onServerRegistered() - status=0 serverIf=6
+10-14 18:25:21.035 D/BluetoothGattServer(26616): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 18:25:21.039 D/BluetoothGattServer(26616): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
+10-14 18:26:07.498 D/BluetoothGattServer(26616): close()
+10-14 18:26:07.498 D/BluetoothGattServer(26616): unregisterCallback() - mServerIf=6
+10-14 18:26:24.282 D/BluetoothGattServer(26616): registerCallback()
+10-14 18:26:24.282 D/BluetoothGattServer(26616): registerCallback() - UUID=<ID>
+10-14 18:26:24.285 D/BluetoothGattServer(26616): onServerRegistered() - status=0 serverIf=6
+10-14 18:26:24.287 D/BluetoothGattServer(26616): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 18:26:24.290 D/BluetoothGattServer(26616): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
+10-14 18:26:35.817 W/bt_stack( 2020): gatt_le_connect_cback  connected : 1, reason : 0
+10-14 18:26:35.818 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 18:26:36.266 D/BluetoothGattServer(26616): onPhyUpdate() - device=<ADDR>, txPHy=2, rxPHy=2
+10-14 18:26:36.514 D/BluetoothGattServer(26616): onMtuChanged() - device=<ADDR>, mtu=293
+10-14 18:28:07.912 W/bt_stack( 2020): gatt_le_connect_cback  connected : 0, reason : 22
+10-14 18:28:07.913 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 18:28:08.124 W/bt_stack( 2020): gatt_le_connect_cback  connected : 1, reason : 0
+10-14 18:28:08.134 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 18:28:08.601 D/BluetoothGattServer(26616): onPhyUpdate() - device=<ADDR>, txPHy=2, rxPHy=2
+10-14 18:28:08.848 D/BluetoothGattServer(26616): onMtuChanged() - device=<ADDR>, mtu=293
+10-14 18:28:10.888 D/BluetoothGattServer(26616): cancelConnection() - device: <ADDR>
+10-14 18:28:10.891 D/BluetoothGattServer(26616): close()
+10-14 18:28:10.891 D/BluetoothGattServer(26616): unregisterCallback() - mServerIf=6
+10-14 18:28:18.775 D/BluetoothGattServer(26616): registerCallback()
+10-14 18:28:18.775 D/BluetoothGattServer(26616): registerCallback() - UUID=<ID>
+10-14 18:28:18.780 D/BluetoothGattServer(26616): onServerRegistered() - status=0 serverIf=6
+10-14 18:28:18.780 D/BluetoothGattServer(26616): onServerConnectionState() - status=0 serverIf=6 device=<ADDR>
+10-14 18:28:18.782 D/BluetoothGattServer(26616): addService() - service: 12345678-1234-1234-1234-1234567890ab
+10-14 18:28:18.786 D/BluetoothGattServer(26616): onServiceAdded() - handle=134 uuid=12345678-1234-1234-1234-1234567890ab status=0
+10-14 18:31:26.608 D/BluetoothGattServer(26616): cancelConnection() - device: <ADDR>
+10-14 18:31:26.609 D/BluetoothGattServer(26616): close()
+10-14 18:31:26.609 D/BluetoothGattServer(26616): unregisterCallback() - mServerIf=6

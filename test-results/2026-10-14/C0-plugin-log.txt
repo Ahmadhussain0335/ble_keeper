@@ -1,0 +1,6 @@
+2026-10-14T13:31:47.822Z #123 disconnected device=dev-54568c1f reason=stopped
+2026-10-14T13:32:35.615Z #124 blocked reason=bluetoothOff
+2026-10-14T13:32:36.962Z note "Bluetooth on"
+2026-10-14T13:33:14.873Z #125 connected device=dev-5ea82438
+2026-10-14T13:34:15.355Z #126-186 data device=dev-5ea82438 char=12345678-1234-1234-1234-1234567890ac count=61 bytes=244
+2026-10-14T13:35:16.646Z #187-217 data device=dev-5ea82438 char=12345678-1234-1234-1234-1234567890ac count=31 bytes=124

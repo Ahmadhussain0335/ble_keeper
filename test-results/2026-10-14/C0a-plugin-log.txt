@@ -1,0 +1,17 @@
+2026-10-14T13:21:26.014Z note "Bluetooth on"
+2026-10-14T13:21:27.706Z #1 connected device=dev-54568c1f
+2026-10-14T13:22:28.079Z #2-61 data device=dev-54568c1f char=12345678-1234-1234-1234-1234567890ac count=60 bytes=240
+2026-10-14T13:23:19.367Z note "device=dev-54568c1f services changed, rediscovering"
+2026-10-14T13:23:19.428Z #62-112 data device=dev-54568c1f char=12345678-1234-1234-1234-1234567890ac count=51 bytes=204
+2026-10-14T13:23:19.428Z #113 blocked device=dev-54568c1f reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T13:23:57.159Z #114 disconnected device=dev-54568c1f reason=stopped
+2026-10-14T13:24:05.118Z #115 blocked device=dev-54568c1f reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T13:24:05.118Z #116 connected device=dev-54568c1f
+2026-10-14T13:25:17.149Z note "device=dev-54568c1f services changed, rediscovering"
+2026-10-14T13:25:18.785Z #117 disconnected device=dev-54568c1f reason=stopped
+2026-10-14T13:26:36.890Z #118 blocked device=dev-54568c1f reason=misconfigured detail="characteristic 12345678-1234-1234-1234-1234567890ac not found in service 12345678-1234-1234-1234-1234567890ab"
+2026-10-14T13:26:36.890Z #119 connected device=dev-54568c1f
+2026-10-14T13:28:07.804Z #120 disconnected device=dev-54568c1f reason=peerTerminated code=7
+2026-10-14T13:28:07.804Z #121 reconnecting device=dev-54568c1f attempt=1
+2026-10-14T13:28:08.843Z #122 connected device=dev-54568c1f
+2026-10-14T13:28:10.790Z note "device=dev-54568c1f services changed, rediscovering"
