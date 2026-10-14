@@ -12,6 +12,7 @@ test tool only and is not part of the published package (`tools/` is in
 | Service | `12345678-1234-1234-1234-1234567890ab` | | |
 | Counter | `12345678-1234-1234-1234-1234567890ac` | read, notify (CCCD) | uint32 little-endian, +1 every second while the server runs; notified to subscribed centrals |
 | Command | `12345678-1234-1234-1234-1234567890ad` | write with response | ASCII command |
+| Pairing | `12345678-1234-1234-1234-1234567890ae` | read, encrypted link required | ASCII `paired`; the first read from an unbonded central fails with insufficient encryption, which makes iOS (and Android) pair |
 
 | Command | Effect |
 |---|---|
@@ -83,4 +84,14 @@ Galaxy S20 peripheral): without the bond the address changed after the first
 disconnect; with the bond the plugin connected by identity address.
 Reconnects across address changes are checked by the hardware tests (see
 `test-results/RESULTS.md`). The plugin itself never bonds.
+
+### iPhone as central
+
+iOS has no pairing screen for BLE peripherals; it pairs when a read hits a
+characteristic that needs encryption. In nRF Connect on the iPhone: connect to
+`BLE-Test-Device`, read the pairing characteristic (`...90ae`) once, accept the
+pairing request on the iPhone and on the peripheral phone, then disconnect and
+close nRF Connect. The bond lets iOS keep the same peripheral identifier
+across the peripheral's address changes. The peripheral log shows
+"pairing characteristic read by ... (bond bonded)".
 

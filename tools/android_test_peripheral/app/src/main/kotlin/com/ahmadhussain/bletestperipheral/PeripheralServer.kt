@@ -41,7 +41,10 @@ data class PeripheralState(
  * - notify characteristic: uint32 little-endian counter, +1 every second while
  *   running (also while nobody is connected, so the central can count gaps),
  *   notified to subscribed centrals;
- * - command characteristic: "disconnect", "reboot", "silent".
+ * - command characteristic: "disconnect", "reboot", "silent";
+ * - pairing characteristic: readable only over an encrypted link, so the
+ *   first read from an iPhone makes iOS pair (iOS has no pairing UI for BLE
+ *   peripherals). The bond lets the central follow the rotating address.
  *
  * Advertising uses one AdvertisingSet that is only enabled/disabled, never
  * recreated, to keep the (private, rotating) address stable as long as the
@@ -127,8 +130,14 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
             BluetoothGattCharacteristic.PROPERTY_WRITE,
             BluetoothGattCharacteristic.PERMISSION_WRITE,
         )
+        val pairChar = BluetoothGattCharacteristic(
+            PAIR_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ,
+            BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED,
+        )
         service.addCharacteristic(notifyChar)
         service.addCharacteristic(commandChar)
+        service.addCharacteristic(pairChar)
         return service
     }
 
@@ -283,7 +292,15 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
             offset: Int,
             characteristic: BluetoothGattCharacteristic,
         ) = main.post {
-            val value = if (characteristic.uuid == NOTIFY_UUID) counterBytes() else ByteArray(0)
+            // The stack only forwards a PAIR_UUID read once the link is encrypted.
+            val value = when (characteristic.uuid) {
+                NOTIFY_UUID -> counterBytes()
+                PAIR_UUID -> {
+                    if (offset == 0) log("pairing characteristic read by ${device.address} (bond ${bondName(device)})")
+                    PAIRED_VALUE
+                }
+                else -> ByteArray(0)
+            }
             val slice = if (offset < value.size) value.copyOfRange(offset, value.size) else ByteArray(0)
             server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, slice)
         }.let { }
@@ -348,6 +365,12 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
         }.let { }
     }
 
+    private fun bondName(device: BluetoothDevice): String = when (device.bondState) {
+        BluetoothDevice.BOND_BONDED -> "bonded"
+        BluetoothDevice.BOND_BONDING -> "bonding"
+        else -> "none"
+    }
+
     private fun log(text: String) {
         val line = "${TIME.format(Date())}  $text"
         state = state.copy(log = (state.log + line).takeLast(300))
@@ -367,7 +390,9 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
         val SERVICE_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-1234567890ab")
         val NOTIFY_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-1234567890ac")
         val COMMAND_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-1234567890ad")
+        val PAIR_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-1234567890ae")
         val CCCD_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+        private val PAIRED_VALUE = "paired".toByteArray(Charsets.US_ASCII)
         const val SILENT_MS = 30_000L
         const val REBOOT_PAUSE_MS = 10_000L
         private val TIME = SimpleDateFormat("HH:mm:ss", Locale.US)
