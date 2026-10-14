@@ -2,7 +2,26 @@
 
 Resume point for "continue from PROGRESS.md". Updated after every step.
 
-Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
+Branch: `test/ios-phase-c`, pushed to `main` (0.1.0-beta.1 is published on pub.dev).
+
+## Hardware test session (2026-10-14), Phase C (iOS): done
+
+iPhone 13 (iOS 26.6) as central, profile build (release for C9) made with Xcode 16.3 (iOS 18.4 SDK); Phone B Galaxy S20 5G peripheral app, LE-bonded with the tool's new Bond button. Logs: plugin log from the app container, iPhone syslog via pymobiledevice3. Details and evidence: `test-results/RESULTS.md`.
+
+| Test | Result |
+|---|---|
+| C0 smoke (connect, counter, gap) | PASS (first attempt FAIL, F4) |
+| C1 background + locked 30 min | PASS |
+| C2 simulated system kill | PARTIAL: restoration relaunch PASS; background handler not used (F5) |
+| C3 notification during restoration (M5) | PASS (count-based) |
+| C4 peripheral server stopped/started | FAIL, setup-limited (F4; link never dropped, SL4) |
+| C5 peer link loss in background | PASS (back after 1.7 s, not 80 s: Samsung BLE_ON) |
+| C6 iPhone reboot | PASS (relaunch after first unlock) |
+| C7 swipe force-quit | PASS |
+| C8 Bluetooth toggle, Settings and Control Center | PASS (app suspended, not terminated) |
+| C9 release build | PASS |
+
+Open, awaiting approval before any plugin change: F4 (iOS session can report `connected` without notifications after the peripheral's GATT table changed; mainly the test peripheral plus the iOS bonded GATT cache) and F5 (no `launched by Core Bluetooth` on an iOS 26 restoration relaunch, headless background handler not started). Example fix made in this phase: the Simulate system kill button never worked (no Swift `DEBUG` condition), now in debug and profile builds (748dd34).
 
 ## Hardware test session (2026-10-14), Phase B (Android extra): done
 
@@ -122,7 +141,7 @@ Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edit
 | `flutter pub publish --dry-run` | 0 warnings, 147 KB |
 | pana 0.23.19 | 150/160. Lost 10 only on the screenshot check: pana needs `cwebp`/`gif2webp`/`webpinfo` (not installed here; `brew install webp`). Repository URL now verifies |
 
-CI on GitHub: green on 2026-10-14 (Flutter 3.44.0, Flutter 3.47.7, iOS XCTest jobs). Android hardware tests: see `test-results/RESULTS.md`. Not run: iOS hardware tests, the ESP32 sketch compile.
+CI on GitHub: green on 2026-10-14 (Flutter 3.44.0, Flutter 3.47.7, iOS XCTest jobs). Android and iOS hardware tests: see `test-results/RESULTS.md`. Not run: the ESP32 sketch compile.
 
 ## Environment
 
@@ -189,9 +208,9 @@ CI on GitHub: green on 2026-10-14 (Flutter 3.44.0, Flutter 3.47.7, iOS XCTest jo
 
 1. iOS: whether plugin registration happens on a background restoration relaunch without the `bootstrap` call (expected: no, with the UIScene template).
 2. iOS: headless engine boot time and memory inside the background window; jetsam risk.
-3. iOS 26: restoration after system termination, crash, reboot (after first unlock); no relaunch after force-quit or Settings Bluetooth toggle.
-4. iOS: whether notifications survive restoration or must be re-enabled; interplay of `CBConnectPeripheralOptionEnableAutoReconnect` (iOS 17+) with restoration.
-5. iOS: false-positive rate of the force-quit heuristic.
+3. iOS 26: restoration after system termination and reboot (after first unlock) and no relaunch after force-quit: verified in Phase C (C2, C6, C7, C9). Still open: crash, and Settings Bluetooth toggle while the app is terminated.
+4. iOS: notifications survive restoration (C3, C9: data delivered before `connected`, queued values delivered). Still open: interplay of `CBConnectPeripheralOptionEnableAutoReconnect` (iOS 17+) with restoration.
+5. iOS: false-positive rate of the force-quit heuristic. Phase C: correct for real swipes (C7); one false positive after Xcode stopped a debug run (O4).
 6. Android: system restart of a sticky `connectedDevice` foreground service after process death on Android 12-17 (does `startForeground` throw?).
 7. Android 15/16/17: starting a `connectedDevice` foreground service from `BOOT_COMPLETED`; force-stop followed by reboot.
 8. Android: `adb shell am kill` with a running foreground service (expected: no effect) vs `adb shell run-as <pkg> kill -9 <pid>` (expected: sticky restart and `RestoredAfterKill`).
@@ -215,6 +234,6 @@ Left for you:
 
 Before 0.1.0 stable:
 
-6. Install Xcode 26 and run the iOS part of tools/HARDWARE_CHECKLIST.md (phase C) on an iPhone with iOS 26; fill the README "Verified on" table.
+6. Decide on the F4 and F5 fixes (test-results/RESULTS.md "Failures"); then install Xcode 26 and repeat checklist 1, 11, 12 and 21 with an iOS 26 SDK build (Phase C used Xcode 16.3 / iOS 18.4 SDK), and C2 to confirm F5.
 7. Test with a fixed-address peripheral (ESP32 or a static-address gadget): `disconnect`/`reboot` commands, real out-of-range, phone reboot (#10), absence over 10 min (#18), #20.
 8. Compile the ESP32 sketch once on your Arduino-ESP32 3.x core.

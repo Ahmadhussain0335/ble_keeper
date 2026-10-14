@@ -5,9 +5,10 @@ after the OS kills it, and after the phone reboots, on Android and iOS. When
 the OS does not allow that (user force-quit, Bluetooth off, missing
 permission), it tells you instead of failing silently.
 
-> **Pre-release (0.1.0-beta.1).** Android is verified on real hardware (see
-> [Verified on](#verified-on)). iOS builds and passes its unit tests but has
-> not been tested on a real iPhone yet.
+> **Pre-release (0.1.0-beta.1).** Android is verified on real hardware. iOS
+> was tested on an iPhone 13 (iOS 26.6) with profile and release builds made
+> with Xcode 16.3 (see [Verified on](#verified-on)); two iOS issues found in
+> that run are still open (see `test-results/RESULTS.md` in the repository).
 
 ## Why
 
@@ -97,6 +98,7 @@ Only tests that passed on real devices are listed. Test IDs are the numbers in
 | Device | OS version | Test IDs passed | Date |
 |---|---|---|---|
 | Samsung Galaxy A53 5G (central, debug and release builds; peripheral: Galaxy S20 5G, Android 13, running `tools/android_test_peripheral`, bonded) | Android 16, One UI 8.0 | 1 (20 min screen off in forced deep Doze), 2, 3, 4, 8, 9, 13 (swipe from recents + 30 min screen off), 14, 15, 16; also app update (`MY_PACKAGE_REPLACED`), peer-initiated link loss, and the peripheral disappearing for about 80 s and coming back (pending reconnect, no polling) | 2026-10-14 |
+| Apple iPhone 13 (central, profile and release builds made with Xcode 16.3 / iOS 18.4 SDK; peripheral: Galaxy S20 5G, Android 13, running `tools/android_test_peripheral`, LE-bonded) | iOS 26.6 | 1 (37 min in background, locked), 9 (Bluetooth toggled in Settings and in Control Center, app in background), 10 (phone reboot: relaunched after the first unlock without opening the app), 12 (swipe force-quit: not relaunched, `Blocked(userForceQuit)` on the next launch, session resumes), 21 (notification during a restoration relaunch delivered); also peer-initiated link loss with automatic reconnect in the background, and a restoration relaunch after the app was replaced by an install (queued notifications delivered) | 2026-10-14 |
 
 ## Install
 
