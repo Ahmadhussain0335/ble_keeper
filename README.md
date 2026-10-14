@@ -463,9 +463,9 @@ buttons for the commands.
 No ESP32? `tools/android_test_peripheral` turns a spare Android phone into the
 same test device. It advertises with a rotating private address, so bond the
 central with it once: from an Android central pair in Settings > Bluetooth;
-from an iPhone (no pairing screen for BLE peripherals) connect with nRF
-Connect, read characteristic `12345678-1234-1234-1234-1234567890ae` once and
-accept the pairing request on both phones.
+from an iPhone (no pairing screen for BLE peripherals) connect from the
+example app, tap **Bond** in the peripheral app and accept the pairing
+request (see the tool's README).
 
 **Testing iOS state restoration.** Use a profile or release build started from
 the home screen, not a debug build: since iOS 14 a debug Flutter app can only

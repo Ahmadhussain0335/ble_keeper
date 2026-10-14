@@ -20,6 +20,9 @@ test tool only and is not part of the published package (`tools/` is in
 | `reboot` | disconnects all centrals, disables advertising for 10 s, resets the counter to 0, then advertises again |
 | `silent` | keeps the link, sends no notifications for 30 s (the counter keeps running, so the central sees a gap of about 30) |
 
+The **Bond** button asks every connected central to pair (see "iPhone as
+central" below).
+
 Advertising: one legacy, connectable, scannable advertising set (100 ms
 interval) with the service UUID in the advertising data and the phone's
 Bluetooth name in the scan response. The set is created once and only enabled
@@ -87,11 +90,22 @@ Reconnects across address changes are checked by the hardware tests (see
 
 ### iPhone as central
 
-iOS has no pairing screen for BLE peripherals; it pairs when a read hits a
-characteristic that needs encryption. In nRF Connect on the iPhone: connect to
-`BLE-Test-Device`, read the pairing characteristic (`...90ae`) once, accept the
-pairing request on the iPhone and on the peripheral phone, then disconnect and
-close nRF Connect. The bond lets iOS keep the same peripheral identifier
-across the peripheral's address changes. The peripheral log shows
-"pairing characteristic read by ... (bond bonded)".
+iOS has no pairing screen for BLE peripherals; it pairs when the peripheral
+asks for security. Easiest way:
 
+1. Remove any old pairing first: on the iPhone, Settings > Bluetooth > (i) >
+   Forget This Device for every entry of the peripheral phone; on the
+   peripheral phone unpair "iPhone"; toggle Bluetooth on both. Do not pair
+   from Bluetooth Settings: that creates a Classic bond, and iOS then runs
+   GATT over Classic Bluetooth (`transport: classic` in the iPhone log), which
+   is not what an LE-only device does. Stale keys on the iPhone show up as
+   failed encryption (`status=4803 isPairing=0`) and no pairing prompt.
+2. Connect from the app under test (or nRF Connect), then tap **Bond** in this
+   app (or run
+   `adb shell am start -n com.ahmadhussain.bletestperipheral/.MainActivity --ez bond true`).
+   `createBond()` in the peripheral role sends an SMP Security Request and
+   iOS shows "Bluetooth Pairing Request"; tap **Pair**.
+
+Alternative: in nRF Connect read the pairing characteristic (`...90ae`); the
+read needs encryption, so iOS pairs. The bond lets iOS keep the same
+peripheral identifier across the peripheral's address changes.

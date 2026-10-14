@@ -22,10 +22,12 @@ Setup for every test:
    With `tools/android_test_peripheral`, bond the central with the peripheral
    phone once so it can follow the rotating address. Android central: pair
    in Settings > Bluetooth and keep connected by the identity address. iPhone
-   (iOS has no pairing screen for BLE peripherals): in nRF Connect connect to
-   the peripheral, read characteristic `12345678-1234-1234-1234-1234567890ae`
-   once, accept the pairing request on both phones, disconnect and close
-   nRF Connect.
+   (iOS has no pairing screen for BLE peripherals): connect from the example
+   app, tap **Bond** in the peripheral app and accept the pairing request on
+   the iPhone (or read characteristic `12345678-1234-1234-1234-1234567890ae`
+   once in nRF Connect). Never pair the phones from Bluetooth Settings: that
+   creates a Classic bond and iOS then runs GATT over Classic Bluetooth. See
+   `tools/android_test_peripheral/README.md`.
 4. Scan, pick `BLE-Test-Device`, tap **Keep connected**. Expect
    `connected`, counter increasing every second, Missed 0.
 5. After each test tap **Export log** and keep the file.
