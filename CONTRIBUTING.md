@@ -107,7 +107,7 @@ users' devices; changing them later orphans existing sessions.
 1. Update `version` in `pubspec.yaml` and `ios/ble_keeper.podspec`, and
    `CHANGELOG.md`.
 2. Merge to `main` with CI green.
-3. The first release (0.1.0) is published manually: `flutter pub publish`.
+3. The first release (0.1.0-beta.1) is published manually: `flutter pub publish`.
 4. Later releases: push a tag `vX.Y.Z`. `.github/workflows/publish.yml` uses
    the reusable `dart-lang/setup-dart` publish workflow (it installs Dart for
    the OIDC token and Flutter to resolve the plugin) in the GitHub environment

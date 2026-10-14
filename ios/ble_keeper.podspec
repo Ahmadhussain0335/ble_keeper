@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ble_keeper'
-  s.version          = '0.1.0'
+  s.version          = '0.1.0-beta.1'
   s.summary          = 'Keeps a BLE peripheral connected in the background on iOS.'
   s.description      = <<-DESC
 Owns the Core Bluetooth connection with state restoration so it survives the

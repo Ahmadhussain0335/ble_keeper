@@ -5,6 +5,10 @@ after the OS kills it, and after the phone reboots, on Android and iOS. When
 the OS does not allow that (user force-quit, Bluetooth off, missing
 permission), it tells you instead of failing silently.
 
+> **Pre-release (0.1.0-beta.1).** Android is verified on real hardware (see
+> [Verified on](#verified-on)). iOS builds and passes its unit tests but has
+> not been tested on a real iPhone yet.
+
 ## Why
 
 BLE plugins such as flutter_blue_plus run their connection logic inside the

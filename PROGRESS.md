@@ -89,7 +89,7 @@ Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edit
 | 2. Android robustness (reconnect, BT on/off, 133, headless, log, Blocked, multi-device) | code done with phase 1 (one commit; the pieces depend on each other); hardware verification pending |
 | 3. iOS (restoration, pending connect, buffering, force-quit heuristic, log, debug kill) | done; hardware verification pending |
 | 4. Example app + Dart tests | done |
-| 5. Publishing prep | done except the items under "Before publishing I must" |
+| 5. Publishing prep | 0.1.0-beta.1 ready; manual steps under "Before publishing I must" |
 
 ### Step log
 
@@ -105,15 +105,15 @@ Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edit
 - 5 done: pubspec (0.1.0, description 150 chars, topics, screenshots, `meta` dependency for generated code), README, LICENSE (BSD-3), CHANGELOG, CONTRIBUTING, SECURITY.md, .pubignore, CI (SHA-pinned actions) and publish workflows, ESP32 sketch in tools/.
 - Review pass: `reviewer` and `security-auditor` agents. Fixed: event delivery stopped for good after one failed ack (now retried every 5 s); reconnect loop without backoff when setup failed; API 26-32 notification value race (handler only on API 33+); `keepConnected` right after the last `stop` hit the dying service; headless engine started during UI start-up or after the service stopped; timed-out read/write left the GATT stack busy (now drops the link); restartOnBoot=false sessions not resumed by the UI; permission checked before `startForeground`; iOS write-without-response ordering; orphaned restored peripherals cancelled; duplicate Connected after a service change; queued writes failing slowly; clearLog now rotates the salt and removes the corrupt-session backup; only the newest export is kept (iOS export file protection complete); iOS backup exclusion re-applied every launch; Dart caps on subscriptions (32) and notification strings (256); example no longer prints raw IDs.
 
-## Verification results (last run 2026-10-13 after the verification pass, Flutter 3.47.7, Xcode 16.3)
+## Verification results (last run 2026-10-14 for 0.1.0-beta.1, Flutter 3.47.7, Xcode 16.3)
 
 | Check | Result |
 |---|---|
 | `dart format --output=none --set-exit-if-changed .` | clean |
 | `flutter analyze` (plugin + example, `public_member_api_docs` on) | 0 issues |
 | `flutter test` (plugin) | 65 passed |
-| `flutter test` (example) | 19 passed |
-| Kotlin unit tests (`example/android: ./gradlew :ble_keeper:testDebugUnitTest`) | 70 passed |
+| `flutter test` (example) | 23 passed |
+| Kotlin unit tests (`example/android: ./gradlew :ble_keeper:testDebugUnitTest`) | 77 passed |
 | XCTest (`xcodebuild test`, example RunnerTests, iPad (A16) iOS 18.4 simulator) | 40 passed |
 | `flutter build apk --debug` / `--release` (example) | OK / OK |
 | `flutter build ios --no-codesign` (example, Swift Package Manager) | OK |
@@ -122,7 +122,7 @@ Note: the Android half of M8 landed in the M4 commit (ade6b11) because both edit
 | `flutter pub publish --dry-run` | 0 warnings, 147 KB |
 | pana 0.23.19 | 150/160. Lost 10 only on the screenshot check: pana needs `cwebp`/`gif2webp`/`webpinfo` (not installed here; `brew install webp`). Repository URL now verifies |
 
-Not run: the CI workflows on GitHub (incl. the Flutter 3.44.0 matrix entry), integration tests on a device, any hardware test (tools/HARDWARE_CHECKLIST.md), the ESP32 sketch compile.
+CI on GitHub: green on 2026-10-14 (Flutter 3.44.0, Flutter 3.47.7, iOS XCTest jobs). Android hardware tests: see `test-results/RESULTS.md`. Not run: iOS hardware tests, the ESP32 sketch compile.
 
 ## Environment
 
@@ -203,13 +203,18 @@ Not run: the CI workflows on GitHub (incl. the Flutter 3.44.0 matrix entry), int
 
 ## Before publishing I must
 
-1. Repository: done (`Ahmadhussain0335/ble_keeper`, `main` pushed by you). Push the verification-pass commits from `feat/v0.1.0`.
-2. Decide the final package name and rename before 0.1.0 (checklist in CONTRIBUTING.md). The restore identifier and storage names change with it; renaming after release would orphan existing users' sessions.
-3. TODO screenshot: `doc/screenshot.png` is a placeholder. Replace it with a real capture of the example app, or remove the `screenshots:` entry from pubspec.yaml. Not invented by me.
-4. TODO security contact: replace `SECURITY_CONTACT_EMAIL` in SECURITY.md (or point only to GitHub private vulnerability reporting) and enable private vulnerability reporting on GitHub. Not invented by me.
-5. Install Xcode 26 (iOS 26 device testing) and run tools/HARDWARE_CHECKLIST.md (tests 1-21); fill the README "Verified on" table.
-6. Compile the ESP32 sketch once on your Arduino-ESP32 3.x core.
-7. Check that the first CI run on GitHub passes, including the Flutter 3.44.0 matrix entry and the macOS XCTest job.
-8. Accept Android SDK licences if a build asks for it.
-9. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
-10. After the first manual publish: create the GitHub environment `pub.dev`, then on pub.dev > Admin > Automated publishing enable GitHub Actions for `Ahmadhussain0335/ble_keeper`, tag pattern `v{{version}}`, required environment `pub.dev`.
+Done for 0.1.0-beta.1 (2026-10-14): name kept as `ble_keeper`; version 0.1.0-beta.1 (pubspec, podspec, CHANGELOG, README pre-release banner); SECURITY.md points only to GitHub private vulnerability reporting; `doc/screenshot.png` is a real capture of the example on Phone A (release build) with the address masked; CI green on Flutter 3.44.0 and 3.47.7; Android hardware results in `test-results/RESULTS.md`.
+
+Left for you:
+
+1. Enable "Private vulnerability reporting" under the repository's Settings > Security.
+2. Review README privacy, App Store guideline 2.5.4 and Play Console foreground-service declaration text.
+3. Publish 0.1.0-beta.1 manually: `flutter pub publish` from the repository root, signed in with the Google account that should own the package (or a verified publisher).
+4. After the first publish: create the GitHub environment `pub.dev`, then on pub.dev > Admin > Automated publishing enable GitHub Actions for `Ahmadhussain0335/ble_keeper`, tag pattern `v{{version}}`, required environment `pub.dev`. Tagging `v0.1.0-beta.1` afterwards makes the publish job fail because the version exists; that is expected.
+5. Accept Android SDK licences if a build asks for it.
+
+Before 0.1.0 stable:
+
+6. Install Xcode 26 and run the iOS part of tools/HARDWARE_CHECKLIST.md (phase C) on an iPhone with iOS 26; fill the README "Verified on" table.
+7. Test with a fixed-address peripheral (ESP32 or a static-address gadget): `disconnect`/`reboot` commands, real out-of-range, phone reboot (#10), absence over 10 min (#18), #20.
+8. Compile the ESP32 sketch once on your Arduino-ESP32 3.x core.
