@@ -1,0 +1,9 @@
+2026-10-14 19:55:53.336798 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 19:55:53.339594 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 19:55:53.439529 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: NonUserInteractive) (endowments: (null))
+2026-10-14 19:55:53.580086 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: NonUserInteractive) (endowments: (null))
+2026-10-14 19:55:53.704771 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: Background) (endowments: (null))
+2026-10-14 19:56:05.004991 bluetoothd{bluetoothd}[97] <NOTICE>: App disconnected - {cbuuid: <ID>, bundle: com.ahmadhussain.bleKeeperExample, reconnecting: N}
+2026-10-14 19:56:05.813493 bluetoothd{bluetoothd}[97] <NOTICE>: Encryption is now enabled for device "<ID>" (Public <ADDR>)
+2026-10-14 19:56:05.851813 bluetoothd{bluetoothd}[97] <NOTICE>: App ready - {cbuuid: <ID>, bundle: com.ahmadhussain.bleKeeperExample, transport: le, result: 0}
+2026-10-14 19:59:58.327608 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-suspended (role: None) (endowments: (null))
