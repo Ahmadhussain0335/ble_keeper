@@ -32,3 +32,4 @@ pubspec.lock
 tools/
 PROGRESS.md
 coverage/
+test-results/
