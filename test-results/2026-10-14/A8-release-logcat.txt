@@ -1,0 +1,80 @@
+10-14 13:13:00.409  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:01.445  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:02.434  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:03.424  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:04.459  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:05.450  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:06.439  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:07.475  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:08.464  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:09.454  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:10.484  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:11.477  5898  5898 I flutter : ble_keeper background: Data
+10-14 13:13:12.461  1692  1747 I ActivityManager: Force stopping com.ahmadhussain.ble_keeper_example appid=10308 user=-1: installPackageLI
+10-14 13:13:12.470  1692  1747 I ActivityManager: Killing 5898:com.ahmadhussain.ble_keeper_example/u0a308 (adj 200): stop com.ahmadhussain.ble_keeper_example due to installPackageLI
+10-14 13:13:12.482  1692  1790 I ActivityManager: Force stopping com.ahmadhussain.ble_keeper_example appid=10308 user=0: pkg removed
+10-14 13:13:12.813  1692  1748 I ActivityManager: Start proc 7225:com.ahmadhussain.ble_keeper_example/u0a308 for broadcast {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.BootReceiver}
+10-14 13:13:13.120  1692  2454 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: RCVR; uidBFSL: n/a; intent: Intent { act=com.ahmadhussain.ble_keeper.action.BOOT xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PACKAGE_REPLACED; tempAllowListReason:<c511dac android.intent.action.MY_PACKAGE_REPLACED/u0,reasonCode:PACKAGE_REPLACED,duration:20000,callingUid:1000>; allowWiu:-1; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 13:13:13.180  1692  3832 W ActivityManager: Foreground service started from background can not have location/camera/microphone access: service com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService
+10-14 13:13:13.205  7225  7332 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 13:13:13.206  7225  7332 D BluetoothGatt: registerApp()
+10-14 13:13:13.208  7225  7332 D BluetoothGatt: registerApp() - UUID=1bac178c-dc81-46ec-a75b-db7a40ae76f5
+10-14 13:13:13.214  7225  7252 D BluetoothGatt: onClientRegistered() - status=0 clientIf=53
+10-14 13:13:13.244  7225  7252 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=53 connected=true device=<PHONE_B_IDENTITY>
+10-14 13:13:13.252  7225  7332 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 13:13:13.354  7225  7343 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 13:13:13.368  7225  7252 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 13:13:13.372  7225  7332 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 13:13:13.377  7225  7252 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 13:13:13.381  7225  7332 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: FATAL EXCEPTION: main
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: Process: com.ahmadhussain.ble_keeper_example, PID: 7225
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: android.app.RemoteServiceException$CrashedByAdbException: shell-induced crash
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.app.ActivityThread.throwRemoteServiceException(ActivityThread.java:2661)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.app.ActivityThread.-$$Nest$mthrowRemoteServiceException(ActivityThread.java:0)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:3068)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:110)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:273)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:363)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:10060)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:632)
+10-14 13:13:53.460  7225  7225 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:975)
+10-14 13:13:53.476  1692  7435 W ActivityManager: crash : com.ahmadhussain.ble_keeper_example,10308
+10-14 13:13:53.537  1692  2453 I ActivityManager: Process com.ahmadhussain.ble_keeper_example (pid 7225) has died: prcp FGS (460,3060)
+10-14 13:13:53.538  1692  2453 W ActivityManager: Scheduling restart of crashed service com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService in 1000ms for start-requested
+10-14 13:13:54.572  1692  1748 I ActivityManager: Start proc 7446:com.ahmadhussain.ble_keeper_example/u0a308 for service {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService}
+10-14 13:13:54.702  1692  3831 W ActivityManager: Foreground service started from background can not have location/camera/microphone access: service com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService
+10-14 13:13:54.724  7446  7464 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 13:13:54.724  7446  7464 D BluetoothGatt: registerApp()
+10-14 13:13:54.725  7446  7464 D BluetoothGatt: registerApp() - UUID=bd539c13-d3f3-49f8-9c12-f9114fc4432d
+10-14 13:13:54.728  7446  7463 D BluetoothGatt: onClientRegistered() - status=0 clientIf=54
+10-14 13:13:54.772  7446  7471 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 13:13:54.868  7446  7463 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=54 connected=true device=<PHONE_B_IDENTITY>
+10-14 13:13:54.873  7446  7464 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 13:13:55.307  7446  7463 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 13:13:55.308  7446  7464 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 13:13:55.530  7446  7463 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 13:13:55.533  7446  7464 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 13:14:13.449  1692  2454 I ActivityManager: Force stopping com.ahmadhussain.ble_keeper_example appid=10308 user=0: from pid 7528
+10-14 13:14:13.450  1692  2454 I ActivityManager: Killing 7446:com.ahmadhussain.ble_keeper_example/u0a308 (adj 200): stop com.ahmadhussain.ble_keeper_example due to from pid 7528
+10-14 13:15:33.475  1692  3373 I ActivityManager: android.util.AndroidRuntimeException: Activity could not be started for Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 xflg=0x4 pkg=com.ahmadhussain.ble_keeper_example cmp=com.ahmadhussain.ble_keeper_example/.MainActivity }
+10-14 13:15:33.618  1692  3357 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity bnds=[539,1654][788,1935]} with LAUNCH_SINGLE_TOP from uid 10130 (sr=35098523) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+10-14 13:15:33.674  1692  1748 I ActivityManager: Start proc 7747:com.ahmadhussain.ble_keeper_example/u0a308 for next-top-activity {com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper_example.MainActivity}
+10-14 13:15:33.758  1692  3373 I ActivityManager: Background started FGS: Allowed [callingPackage: com.ahmadhussain.ble_keeper_example; callingUid: 10308; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=com.ahmadhussain.ble_keeper.action.BOOT xflg=0x4 cmp=com.ahmadhussain.ble_keeper_example/com.ahmadhussain.ble_keeper.service.KeeperService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+10-14 13:15:33.824  7747  7773 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-14 13:15:34.027  7747  7800 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: false
+10-14 13:15:34.028  7747  7800 D BluetoothGatt: registerApp()
+10-14 13:15:34.030  7747  7800 D BluetoothGatt: registerApp() - UUID=cc7c5bda-703e-4e58-9f96-db9cdf10748f
+10-14 13:15:34.035  7747  7798 D BluetoothGatt: onClientRegistered() - status=0 clientIf=55
+10-14 13:15:34.133  1692  1733 I ActivityTaskManager: Displayed com.ahmadhussain.ble_keeper_example/.MainActivity for user 0: +516ms
+10-14 13:15:34.135  1692  1733 I ActivityTaskManager: Fully drawn com.ahmadhussain.ble_keeper_example/.MainActivity: +516ms
+10-14 13:15:34.809  7747  7798 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=55 connected=true device=<PHONE_B_IDENTITY>
+10-14 13:15:34.811  7747  7800 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 13:15:35.212  7747  7798 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 13:15:35.215  7747  7800 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 13:15:35.430  7747  7798 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 13:15:35.432  7747  7800 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 13:16:46.863  1692  2397 I ActivityTaskManager: START u0 {flg=0x10000000 xflg=0x5 cmp=com.ahmadhussain.ble_keeper_example/.MainActivity} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=2
+10-14 13:16:46.945  1692  1737 I ActivityTaskManager: done cause=notifyWindowsDrawn timestamp=41772370144352 info=TransitionInfo{b18990c a=ActivityRecord{85903510 u0 com.ahmadhussain.ble_keeper_example/.MainActivity t50} d=true}
+10-14 13:17:04.612  7747  7991 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).

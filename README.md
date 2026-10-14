@@ -86,11 +86,13 @@ positives:
 
 ### Verified on
 
-Filled in from `tools/HARDWARE_CHECKLIST.md` runs. Nothing is verified yet.
+Only tests that passed on real devices are listed. Test IDs are the numbers in
+`tools/HARDWARE_CHECKLIST.md`; details and evidence are in
+`test-results/RESULTS.md` in the repository.
 
 | Device | OS version | Test IDs passed | Date |
 |---|---|---|---|
-| | | | |
+| Samsung Galaxy A53 5G (central, debug and release builds; peripheral: Galaxy S20 5G, Android 13, running `tools/android_test_peripheral`, bonded) | Android 16, One UI 8.0 | 1 (20 min screen off in forced deep Doze), 2, 3, 4, 9, 13 (swipe from recents, notification and data kept; battery part not run), 14; also app update (`MY_PACKAGE_REPLACED`) and peer-initiated link loss with automatic reconnect | 2026-10-14 |
 
 ## Install
 

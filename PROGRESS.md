@@ -4,6 +4,27 @@ Resume point for "continue from PROGRESS.md". Updated after every step.
 
 Branch: `feat/v0.1.0` (no commits on `main`; nothing pushed).
 
+## Hardware test session (2026-10-14), Phase A (Android core): done
+
+Setup: Phone A Galaxy A53 5G (Android 16, One UI 8.0) running the example; Phone B Galaxy S20 5G (Android 13) running `tools/android_test_peripheral` (new in this session), phones bonded, session uses Phone B's identity address. Full results and evidence: `test-results/RESULTS.md`, `test-results/2026-10-14/`.
+
+| Test | Result |
+|---|---|
+| A1 screen off / deep Doze (20.5 min) | PASS |
+| A2 out of range and back | NOT TESTED (link never dropped; redo with shielding) |
+| A3a peripheral `disconnect` command | NOT TESTED (setup limitation SL4: phone peripheral cannot drop a central-initiated link) |
+| A3b peer drops link (Bluetooth off on Phone B) | PASS (reconnect in about 1 s) |
+| A3 `silent` / `reboot` commands | not run (time; reboot needs a peripheral that can drop the link) |
+| A4 Bluetooth off/on on Phone A | PASS |
+| A5 Nearby devices permission revoked | PASS |
+| A6a/b/c am kill / kill -9 / force-stop | PASS / PASS (restart ~2.9 s) / PASS (with F2) |
+| A7 swipe from recents | PASS |
+| A8 release: app update, am kill, am crash, force-stop, swipe | PASS (swipe with limited evidence) |
+
+Open items needing approval before any code change: F2 (BOOT_COMPLETED after a force-stop relaunch is treated as a reboot), E1 (example: prefill device ID), D1 (README: up to 60 s of Data summaries lost on kill). Withdrawn: F1. Setup limitations: SL1-SL4.
+
+Found during setup: an Android phone peripheral changes its private address after every advertising restart; bonding the phones and using the identity address works around it (documented in `tools/android_test_peripheral/README.md`).
+
 ## Verification-and-fix pass (2026-10-13, after the first push)
 
 Brief: confirm each review finding in code, fix with a test where possible, or reject with a
