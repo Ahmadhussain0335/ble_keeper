@@ -9,6 +9,7 @@ import 'gap_detector.dart';
 
 /// ESP32 test device characteristics (see tools/esp32_test_device).
 const testServiceUuid = '12345678-1234-1234-1234-1234567890ab';
+const testDeviceName = 'BLE-Test-Device';
 final counterChar = CharacteristicRef(
   serviceUuid: testServiceUuid,
   characteristicUuid: '12345678-1234-1234-1234-1234567890ac',

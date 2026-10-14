@@ -32,8 +32,14 @@ class _ScanSheetState extends State<_ScanSheet> {
     _sub = UniversalBle.scanStream.listen(
       (d) => setState(() => _found[d.deviceId] = d),
     );
+    // universal_ble ORs the conditions: a device matches by the test service
+    // UUID or by name (phone peripherals may put the UUID only in the scan
+    // response on some stacks).
     UniversalBle.startScan(
-      scanFilter: ScanFilter(withServices: [testServiceUuid]),
+      scanFilter: ScanFilter(
+        withServices: [testServiceUuid],
+        withNamePrefix: [testDeviceName],
+      ),
     ).catchError((Object e) => setState(() => _error = '$e'));
   }
 
@@ -53,7 +59,7 @@ class _ScanSheetState extends State<_ScanSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const ListTile(
-            title: Text('Scanning for the test service'),
+            title: Text('Scanning for the test service or BLE-Test-Device'),
             trailing: SizedBox.square(
               dimension: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
