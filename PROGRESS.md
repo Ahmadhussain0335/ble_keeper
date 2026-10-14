@@ -18,7 +18,7 @@ Fixed and verified on hardware before Phase B: F2 (b287fb1), E1 (bdcb1c0), D1 (2
 | B5 swipe + 30 min screen off, natural Doze | PASS |
 | B6 keepConnected from background | PASS (`Blocked(foregroundStartNotAllowed)`) |
 
-Open, needs approval: F3. Still needs a fixed-address peripheral (ESP32 / static-address gadget): `disconnect`/`reboot` commands, real out-of-range (status 8), phone reboot, absence > 10 min, test 20.
+F3 fixed after Phase B (ignore window only below API 33, 30 s before to 5 s after the update) and verified on hardware (B1c). Still needs a fixed-address peripheral (ESP32 / static-address gadget): `disconnect`/`reboot` commands, real out-of-range (status 8), phone reboot, absence > 10 min, test 20.
 
 ## Hardware test session (2026-10-14), Phase A (Android core): done
 
