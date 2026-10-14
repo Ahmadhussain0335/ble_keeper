@@ -14,7 +14,10 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertisingSet
 import android.bluetooth.le.AdvertisingSetCallback
 import android.bluetooth.le.AdvertisingSetParameters
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -45,6 +48,9 @@ data class PeripheralState(
  * - pairing characteristic: readable only over an encrypted link, so the
  *   first read from an iPhone makes iOS pair (iOS has no pairing UI for BLE
  *   peripherals). The bond lets the central follow the rotating address.
+ *   bondCentrals() does the same from this side: createBond() in the
+ *   peripheral role sends an SMP Security Request, and iOS shows its pairing
+ *   prompt.
  *
  * Advertising uses one AdvertisingSet that is only enabled/disabled, never
  * recreated, to keep the (private, rotating) address stable as long as the
@@ -93,6 +99,7 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
             return
         }
         server = s
+        registerBondReceiver()
         s.addService(buildService())
         state = state.copy(running = true)
         log("GATT server opened, adding service")
@@ -106,10 +113,65 @@ class PeripheralServer(private val context: Context, private val onState: (Perip
         centrals.values.forEach { server?.cancelConnection(it) }
         server?.close()
         server = null
+        unregisterBondReceiver()
         centrals.clear()
         subscribers.clear()
         state = state.copy(running = false, advertising = false)
         log("stopped")
+    }
+
+    /** Asks every connected, unbonded central to pair (SMP Security Request). */
+    fun bondCentrals() {
+        if (centrals.isEmpty()) {
+            log("bond: no central connected")
+            return
+        }
+        for (device in centrals.values) {
+            if (device.bondState == BluetoothDevice.BOND_NONE) {
+                val started = device.createBond()
+                log("bond requested with ${device.address}: ${if (started) "started" else "failed to start"}")
+            } else {
+                log("bond: ${device.address} already ${bondName(device)}")
+            }
+        }
+    }
+
+    private val bondReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+            } ?: return
+            // After bonding the stack may report the identity address, not the
+            // connection's private address, so log every bond change.
+            val state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE)
+            val text = when (state) {
+                BluetoothDevice.BOND_BONDED -> "bonded"
+                BluetoothDevice.BOND_BONDING -> "bonding"
+                else -> "none"
+            }
+            main.post { log("bond state of ${device.address}: $text") }
+        }
+    }
+    private var bondReceiverRegistered = false
+
+    private fun registerBondReceiver() {
+        if (bondReceiverRegistered) return
+        val filter = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(bondReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(bondReceiver, filter)
+        }
+        bondReceiverRegistered = true
+    }
+
+    private fun unregisterBondReceiver() {
+        if (!bondReceiverRegistered) return
+        context.unregisterReceiver(bondReceiver)
+        bondReceiverRegistered = false
     }
 
     private fun buildService(): BluetoothGattService {

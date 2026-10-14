@@ -1,6 +1,7 @@
 package com.ahmadhussain.bletestperipheral
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -60,10 +61,20 @@ class MainActivity : ComponentActivity() {
                         state = state,
                         onStart = ::startWithPermissions,
                         onStop = server::stop,
+                        onBond = server::bondCentrals,
                     )
                 }
             }
         }
+    }
+
+    /**
+     * `adb shell am start -n com.ahmadhussain.bletestperipheral/.MainActivity --ez bond true`
+     * triggers the Bond button from the test computer (singleTop: same instance).
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_BOND, false)) server.bondCentrals()
     }
 
     private fun startWithPermissions() {
@@ -77,10 +88,19 @@ class MainActivity : ComponentActivity() {
         server.stop()
         super.onDestroy()
     }
+
+    private companion object {
+        const val EXTRA_BOND = "bond"
+    }
 }
 
 @Composable
-private fun PeripheralScreen(state: PeripheralState, onStart: () -> Unit, onStop: () -> Unit) {
+private fun PeripheralScreen(
+    state: PeripheralState,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onBond: () -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -95,6 +115,7 @@ private fun PeripheralScreen(state: PeripheralState, onStart: () -> Unit, onStop
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onStart, enabled = !state.running) { Text("Start") }
             OutlinedButton(onClick = onStop, enabled = state.running) { Text("Stop") }
+            OutlinedButton(onClick = onBond, enabled = state.centrals.isNotEmpty()) { Text("Bond") }
         }
         Spacer(Modifier.height(4.dp))
         Text("Log", style = MaterialTheme.typography.titleSmall)
