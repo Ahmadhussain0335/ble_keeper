@@ -1,0 +1,4 @@
+2026-10-14T15:20:45.739Z #441-501 data device=dev-498a2a23 char=12345678-1234-1234-1234-1234567890ac count=61 bytes=244
+2026-10-14T15:24:08.792Z note "Bluetooth on"
+2026-10-14T15:24:08.853Z #1 blocked reason=userForceQuit detail="best effort: the app was terminated while running, most likely closed from the app switcher; iOS does not relaunch an app after a force-quit"
+2026-10-14T15:24:09.820Z #2 connected device=dev-498a2a23

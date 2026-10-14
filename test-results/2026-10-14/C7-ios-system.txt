@@ -1,0 +1,18 @@
+2026-10-14 20:21:00.126198 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:21:00.130493 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:21:00.134678 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:21:00.172813 bluetoothd{bluetoothd}[97] <NOTICE>: Saving Central restoration data: <private> - bundleId com.ahmadhussain.bleKeeperExample, restorationId: com.ahmadhussain.ble_keeper.central, servicesToScan: {(
+2026-10-14 20:21:00.223293 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: NonUserInteractive) (endowments: (null))
+2026-10-14 20:21:00.319319 runningboardd{RunningBoard}[34] <NOTICE>: [app<com.ahmadhussain.bleKeeperExample(<ID>)>:425] termination reported by launchd (0, 0, 0)
+2026-10-14 20:21:00.327605 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: none (role: None) (endowments: (null))
+2026-10-14 20:21:00.327943 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: none (role: None) (endowments: (null))
+2026-10-14 20:24:08.676123 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:08.679636 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:08.730598 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:08.784533 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:08.785258 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:08.801427 bluetoothd{bluetoothd}[97] <NOTICE>: Saving Central restoration data: <private> - bundleId com.ahmadhussain.bleKeeperExample, restorationId: com.ahmadhussain.ble_keeper.central, servicesToScan: {(
+2026-10-14 20:24:08.850509 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:08.959101 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
+2026-10-14 20:24:09.647705 bluetoothd{bluetoothd}[97] <NOTICE>: App ready - {cbuuid: <ID>, bundle: com.ahmadhussain.bleKeeperExample, transport: le, result: 0}
+2026-10-14 20:24:09.878282 runningboardd{RunningBoard}[34] <NOTICE>: Calculated state for app<com.ahmadhussain.bleKeeperExample(<ID>)>: running-active (role: UserInteractiveFocal) (endowments: <private>)
