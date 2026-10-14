@@ -19,9 +19,11 @@ import ble_keeper
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    #if DEBUG
-      // Debug builds only: lets the example simulate the system terminating
-      // the app (state restoration should relaunch it on the next BLE event).
+    // Debug and Profile builds only (EXAMPLE_DEBUG_TOOLS is not set for
+    // Release): lets the example simulate the system terminating the app
+    // (state restoration should relaunch it on the next BLE event). Profile
+    // matters because iOS cannot relaunch a debug Flutter app by itself.
+    #if EXAMPLE_DEBUG_TOOLS
       let channel = FlutterMethodChannel(
         name: "ble_keeper_example/debug",
         binaryMessenger: engineBridge.applicationRegistrar.messenger())

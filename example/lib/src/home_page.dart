@@ -68,9 +68,10 @@ class _HomePageState extends State<HomePage> {
     _snack('Log cleared');
   }
 
-  /// Debug builds on iOS only: SIGKILL simulates the system terminating the
-  /// app. Core Bluetooth state restoration should relaunch it in the
-  /// background on the next event from the device.
+  /// Debug and profile builds on iOS only: SIGKILL simulates the system
+  /// terminating the app. Core Bluetooth state restoration should relaunch it
+  /// in the background on the next event from the device. Restoration tests
+  /// need a profile build: iOS cannot relaunch a debug Flutter app itself.
   Future<void> _simulateKill() =>
       _debugChannel.invokeMethod('simulateSystemKill');
 
@@ -172,13 +173,13 @@ class _HomePageState extends State<HomePage> {
                   onPressed: _clearLog,
                   child: const Text('Clear log'),
                 ),
-                if (kDebugMode && Platform.isIOS)
+                if ((kDebugMode || kProfileMode) && Platform.isIOS)
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                     ),
                     onPressed: _simulateKill,
-                    child: const Text('Simulate system kill (debug)'),
+                    child: const Text('Simulate system kill'),
                   ),
               ],
             ),
