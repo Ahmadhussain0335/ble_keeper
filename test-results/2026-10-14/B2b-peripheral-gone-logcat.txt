@@ -1,0 +1,28 @@
+10-14 14:00:50.842 10504 11044 D BluetoothGatt: onClientConnectionState() - status=19 clientIf=61 connected=false device=<PHONE_B_IDENTITY>
+10-14 14:00:50.845 10504 11044 D BluetoothGatt: unregisterApp() - mClientIf=61
+10-14 14:00:50.850 10504 11162 D BluetoothGatt: close()
+10-14 14:00:50.855 10504 11162 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: true
+10-14 14:00:50.855 10504 11162 D BluetoothGatt: registerApp()
+10-14 14:00:50.856 10504 11162 D BluetoothGatt: registerApp() - UUID=1e4861d8-196c-40ca-bf9e-296acdab8eab
+10-14 14:00:50.862 10504 11044 D BluetoothGatt: onClientRegistered() - status=0 clientIf=62
+10-14 14:01:46.547 10504 10529 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=62 connected=true device=<PHONE_B_IDENTITY>
+10-14 14:01:46.554 10504 11162 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 14:01:46.903 10504 10529 D BluetoothGatt: onServiceChanged() - Device=<PHONE_B_IDENTITY>
+10-14 14:01:46.908 10504 10529 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 14:01:46.911 10504 11162 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 14:01:47.085 10504 10529 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 14:01:47.088 10504 11162 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
+10-14 14:02:02.217 10504 10529 D BluetoothGatt: onClientConnectionState() - status=19 clientIf=62 connected=false device=<PHONE_B_IDENTITY>
+10-14 14:02:02.221 10504 11162 D BluetoothGatt: close()
+10-14 14:02:02.223 10504 11162 D BluetoothGatt: unregisterApp() - mClientIf=62
+10-14 14:02:04.170 10504 11162 D BluetoothGatt: connect() - device: <PHONE_B_IDENTITY>, auto: true
+10-14 14:02:04.171 10504 11162 D BluetoothGatt: registerApp()
+10-14 14:02:04.171 10504 11162 D BluetoothGatt: registerApp() - UUID=b2a60d0b-b466-464f-9257-52b3b7e5bb24
+10-14 14:02:04.178 10504 10529 D BluetoothGatt: onClientRegistered() - status=0 clientIf=63
+10-14 14:03:23.817 10504 10687 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=63 connected=true device=<PHONE_B_IDENTITY>
+10-14 14:03:23.821 10504 11162 D BluetoothGatt: discoverServices() - device: <PHONE_B_IDENTITY>
+10-14 14:03:24.289 10504 10687 D BluetoothGatt: onServiceChanged() - Device=<PHONE_B_IDENTITY>
+10-14 14:03:24.379 10504 10687 D BluetoothGatt: onSearchComplete() = address=<PHONE_B_IDENTITY> status=0
+10-14 14:03:24.382 10504 11162 D BluetoothGatt: configureMTU() - device: <PHONE_B_IDENTITY> mtu: 517
+10-14 14:03:24.603 10504 10687 D BluetoothGatt: onConfigureMTU() - Device=<PHONE_B_IDENTITY> mtu=517 status=0
+10-14 14:03:24.605 10504 11162 D BluetoothGatt: setCharacteristicNotification() - uuid: 12345678-1234-1234-1234-1234567890ac enable: true
