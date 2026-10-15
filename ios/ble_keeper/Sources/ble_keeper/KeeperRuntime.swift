@@ -40,6 +40,10 @@ final class KeeperRuntime {
   private(set) var central: CentralManagerHolder?
   private(set) var bootstrapped = false
   private(set) var launchedForBluetooth = false
+  /// `willRestoreState` ran in this process. On iOS 26 a Core Bluetooth
+  /// relaunch of a UIScene app was seen without `.bluetoothCentrals` in the
+  /// launch options, so restoration also counts as a Bluetooth launch.
+  private(set) var restoredByCoreBluetooth = false
   private var uiEngines = 0
   private var launchClassified = false
   private var configReported = false
@@ -204,6 +208,18 @@ final class KeeperRuntime {
     }
   }
 
+  /// Called on the main thread when Core Bluetooth restored this app's
+  /// central manager (see `restoredByCoreBluetooth`).
+  func coreBluetoothRestored() {
+    restoredByCoreBluetooth = true
+  }
+
+  /// A launch caused by Core Bluetooth: the launch option, or a restoration
+  /// (the option is missing on some iOS 26 relaunches).
+  static func isBluetoothLaunch(launchOption: Bool, restored: Bool) -> Bool {
+    launchOption || restored
+  }
+
   /// The headless engine is only for Core Bluetooth background relaunches.
   /// `applicationState` is not enough: during a normal UIScene cold launch
   /// it is `.background` until the scene activates, and events published
@@ -224,7 +240,8 @@ final class KeeperRuntime {
       guard !self.hub.hasSink, self.hub.pending > 0,
         KeeperRuntime.shouldStartHeadless(
           uiEngines: self.uiEngines, hasHandler: self.state.dispatcherHandle != nil,
-          launchedForBluetooth: self.launchedForBluetooth,
+          launchedForBluetooth: KeeperRuntime.isBluetoothLaunch(
+            launchOption: self.launchedForBluetooth, restored: self.restoredByCoreBluetooth),
           connectedScenes: UIApplication.shared.connectedScenes.count)
       else { return }
       self.headless.start(self)

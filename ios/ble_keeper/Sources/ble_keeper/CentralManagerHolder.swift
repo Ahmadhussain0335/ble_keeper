@@ -90,6 +90,7 @@ final class CentralManagerHolder: NSObject, CBCentralManagerDelegate {
       }
     }
     runtime.note(nil, "state restored with \(peripherals.count) peripheral(s)")
+    DispatchQueue.main.async { [runtime] in runtime.coreBluetoothRestored() }
   }
 
   func centralManagerDidUpdateState(_ central: CBCentralManager) {

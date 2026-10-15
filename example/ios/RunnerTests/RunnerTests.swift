@@ -442,3 +442,12 @@ class SetupDecisionTests: XCTestCase {
     XCTAssertFalse(SetupDecision.rediscoverOnServiceChange(linkUp: false))
   }
 }
+
+class BluetoothLaunchTests: XCTestCase {
+  func testRestorationCountsAsBluetoothLaunch() {
+    // iOS 26 relaunched a UIScene app without `.bluetoothCentrals` (F5).
+    XCTAssertTrue(KeeperRuntime.isBluetoothLaunch(launchOption: false, restored: true))
+    XCTAssertTrue(KeeperRuntime.isBluetoothLaunch(launchOption: true, restored: false))
+    XCTAssertFalse(KeeperRuntime.isBluetoothLaunch(launchOption: false, restored: false))
+  }
+}
