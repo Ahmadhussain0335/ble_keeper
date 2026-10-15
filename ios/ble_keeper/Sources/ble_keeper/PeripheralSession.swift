@@ -63,6 +63,42 @@ enum ReconnectDecision {
   }
 }
 
+/// Setup decisions that need no Core Bluetooth objects (unit-tested).
+enum SetupDecision {
+  enum NotifyAction: Equatable {
+    /// The subscription is known to be in place.
+    case skip
+    /// Write the CCCD but do not wait for a callback (iOS may treat it as a
+    /// no-op because it already considers the characteristic notifying).
+    case enable
+    /// Write the CCCD and wait for didUpdateNotificationStateFor.
+    case enableAndWait
+  }
+
+  /// Only a link handed over by state restoration (or one already set up on
+  /// this link) can rely on `isNotifying`: after a reconnect or a service
+  /// change the peripheral may have forgotten the subscription while Core
+  /// Bluetooth's cached flag still says notifying.
+  static func notifyAction(isNotifying: Bool, trustNotifyingFlag: Bool) -> NotifyAction {
+    guard isNotifying else { return .enableAndWait }
+    return trustNotifyingFlag ? .skip : .enable
+  }
+
+  /// A subscribed characteristic missing after discovery is rediscovered
+  /// once per link before it is reported as misconfiguration (the table may
+  /// still be changing, for example right after a Service Changed).
+  static func shouldRetryDiscovery(missing: Bool, alreadyRetried: Bool) -> Bool {
+    missing && !alreadyRetried
+  }
+
+  /// Service Changed is handled whenever the link is up, not only when the
+  /// session is ready; ignoring it during setup leaves the session on a
+  /// stale table.
+  static func rediscoverOnServiceChange(linkUp: Bool) -> Bool { linkUp }
+
+  static let missingRetryDelay: TimeInterval = 2
+}
+
 /// Owns the connection to one peripheral and keeps it alive.
 ///
 /// Threading: every method runs on the BLE queue that the CBCentralManager
@@ -96,7 +132,13 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private var reads: [String: [Waiter<Data>]] = [:]
   private var writes: [String: [Waiter<Void>]] = [:]
   private var writeWithoutResponseQueue: [(waiter: Waiter<Void>, send: () -> Void)] = []
+  /// Problems already reported on the current link (reset per connection).
   private var reported = Set<String>()
+  /// Core Bluetooth's `isNotifying` can be trusted on the current link: it
+  /// was handed over by state restoration, or set up completely on it.
+  private var notifyFlagTrusted = false
+  /// The one rediscovery for a missing characteristic was used on this link.
+  private var missingRetried = false
   /// Connected was emitted for the current link (not again after a
   /// service change).
   private var connectedEmitted = false
@@ -123,6 +165,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
     peripheral.delegate = self
     if peripheral.state == .connected {
       // Restored by the system with the link still up.
+      notifyFlagTrusted = true
       didConnect()
     } else {
       connect()
@@ -169,6 +212,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   func didConnect() {
     guard state != .stopped else { return }
     connectedEmitted = false
+    reported.removeAll()
+    missingRetried = false
     peripheral.delegate = self
     state = .discovering
     armSetupTimeout()
@@ -373,9 +418,13 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   }
 
   func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
-    // The peripheral changed its GATT table; rediscover and resubscribe.
-    guard state == .ready else { return }
+    // The peripheral changed its GATT table; rediscover and resubscribe,
+    // also when this arrives during setup.
+    guard SetupDecision.rediscoverOnServiceChange(linkUp: linkUp) else { return }
     note("services changed, rediscovering")
+    notifyFlagTrusted = false
+    missingRetried = false
+    pendingNotify.removeAll()
     state = .discovering
     armSetupTimeout()
     peripheral.discoverServices(nil)
@@ -386,6 +435,7 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private func connect() {
     guard state != .stopped else { return }
     state = .connecting
+    notifyFlagTrusted = false
     var options: [String: Any] = [:]
     if session.notifyOnDisconnection { options[CBConnectPeripheralOptionNotifyOnDisconnectionKey] = true }
     if #available(iOS 17.0, *), session.enableAutoReconnect {
@@ -395,21 +445,39 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   }
 
   private func subscribe(_ chars: [CharRef]) {
+    let missing = chars.contains { find($0) == nil }
+    if SetupDecision.shouldRetryDiscovery(missing: missing, alreadyRetried: missingRetried) {
+      missingRetried = true
+      note("subscribed characteristic missing, rediscovering in \(Int(SetupDecision.missingRetryDelay)) s")
+      state = .discovering
+      armSetupTimeout()
+      let token = setupToken
+      queue.asyncAfter(deadline: .now() + SetupDecision.missingRetryDelay) { [weak self] in
+        guard let self = self, self.setupToken == token, self.state == .discovering else { return }
+        self.peripheral.discoverServices(nil)
+      }
+      return
+    }
     state = .subscribing
     for ref in chars {
       guard let ch = find(ref) else {
-        reportOnce(ref.characteristic, "characteristic \(ref.characteristic) not found in service \(ref.service)")
+        reportOnce(ref.characteristic, missingDetail(ref))
         continue
       }
       guard ch.properties.contains(.notify) || ch.properties.contains(.indicate) else {
         reportOnce(ref.characteristic, "characteristic \(ref.characteristic) supports neither notify nor indicate")
         continue
       }
-      // Already subscribed, for example a peripheral restored by the system.
-      if ch.isNotifying { continue }
-      pendingNotify.insert(Self.key(ch))
       // Writes the CCCD; Core Bluetooth picks notify or indicate.
-      peripheral.setNotifyValue(true, for: ch)
+      switch SetupDecision.notifyAction(isNotifying: ch.isNotifying, trustNotifyingFlag: notifyFlagTrusted) {
+      case .skip:
+        continue
+      case .enable:
+        peripheral.setNotifyValue(true, for: ch)
+      case .enableAndWait:
+        pendingNotify.insert(Self.key(ch))
+        peripheral.setNotifyValue(true, for: ch)
+      }
     }
     if pendingNotify.isEmpty { becomeReady() }
   }
@@ -417,6 +485,8 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
   private func becomeReady() {
     guard state != .ready else { return }
     state = .ready
+    // Subscriptions made on this link can be trusted until it changes.
+    notifyFlagTrusted = true
     setupToken += 1
     attempt = 0
     consecutiveFailures = 0
@@ -480,6 +550,16 @@ final class PeripheralSession: NSObject, CBPeripheralDelegate {
       self.writeWithoutResponseQueue.removeAll { $0.waiter.isDone }
       self.failSetup("\(op) timed out")
     }
+  }
+
+  /// Says whether the service itself is missing: on iOS a bonded
+  /// peripheral's GATT table is cached and can lack a service that the
+  /// peripheral removed and added again while connected.
+  private func missingDetail(_ ref: CharRef) -> String {
+    let hasService = peripheral.services?.contains { fullUuid($0.uuid) == ref.service } ?? false
+    if hasService { return "characteristic \(ref.characteristic) not found in service \(ref.service)" }
+    return "service \(ref.service) not found (characteristic \(ref.characteristic)); "
+      + "if the peripheral changed its GATT table, iOS may use a stale cache for a bonded device"
   }
 
   private func find(_ ref: CharRef) -> CBCharacteristic? {

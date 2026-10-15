@@ -414,3 +414,31 @@ class HeadlessGateTests: XCTestCase {
         uiEngines: 0, hasHandler: false, launchedForBluetooth: true, connectedScenes: 0))
   }
 }
+
+class SetupDecisionTests: XCTestCase {
+  func testNotNotifyingIsEnabledAndAwaited() {
+    XCTAssertEqual(SetupDecision.notifyAction(isNotifying: false, trustNotifyingFlag: true), .enableAndWait)
+    XCTAssertEqual(SetupDecision.notifyAction(isNotifying: false, trustNotifyingFlag: false), .enableAndWait)
+  }
+
+  func testTrustedNotifyingFlagSkipsTheWrite() {
+    XCTAssertEqual(SetupDecision.notifyAction(isNotifying: true, trustNotifyingFlag: true), .skip)
+  }
+
+  func testUntrustedNotifyingFlagWritesWithoutWaiting() {
+    // After a reconnect or a service change the peripheral may have
+    // forgotten the CCCD although Core Bluetooth still says notifying (F4).
+    XCTAssertEqual(SetupDecision.notifyAction(isNotifying: true, trustNotifyingFlag: false), .enable)
+  }
+
+  func testMissingCharacteristicIsRetriedOncePerLink() {
+    XCTAssertTrue(SetupDecision.shouldRetryDiscovery(missing: true, alreadyRetried: false))
+    XCTAssertFalse(SetupDecision.shouldRetryDiscovery(missing: true, alreadyRetried: true))
+    XCTAssertFalse(SetupDecision.shouldRetryDiscovery(missing: false, alreadyRetried: false))
+  }
+
+  func testServiceChangeIsHandledWhileTheLinkIsUp() {
+    XCTAssertTrue(SetupDecision.rediscoverOnServiceChange(linkUp: true))
+    XCTAssertFalse(SetupDecision.rediscoverOnServiceChange(linkUp: false))
+  }
+}
