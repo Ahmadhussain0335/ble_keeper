@@ -108,7 +108,7 @@ users' devices; changing them later orphans existing sessions.
    `CHANGELOG.md`.
 2. Merge to `main` with CI green.
 3. The first release (0.1.0-beta.1) is published manually: `flutter pub publish`.
-4. Later releases: push a tag `vX.Y.Z`. `.github/workflows/publish.yml` uses
+4. Later releases: push a tag `vX.Y.Z` (pre-releases: `vX.Y.Z-beta.N`). `.github/workflows/publish.yml` uses
    the reusable `dart-lang/setup-dart` publish workflow (it installs Dart for
    the OIDC token and Flutter to resolve the plugin) in the GitHub environment
    `pub.dev`. One-time setup: create that environment in the repository

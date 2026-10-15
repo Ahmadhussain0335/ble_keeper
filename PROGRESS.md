@@ -2,7 +2,7 @@
 
 Resume point for "continue from PROGRESS.md". Updated after every step.
 
-Branch: `test/ios-phase-c`, pushed to `main` (0.1.0-beta.1 is published on pub.dev).
+Branch: `test/ios-phase-c`, pushed to `main`. Published: 0.1.0-beta.1 (manual); 0.1.0-beta.2 by tag `v0.1.0-beta.2` (F4/F5 fixes, automated publishing).
 
 ## Hardware test session (2026-10-14), Phase C (iOS): done
 
@@ -21,7 +21,7 @@ iPhone 13 (iOS 26.6) as central, profile build (release for C9) made with Xcode 
 | C8 Bluetooth toggle, Settings and Control Center | PASS (app suspended, not terminated) |
 | C9 release build | PASS |
 
-Open, awaiting approval before any plugin change: F4 (iOS session can report `connected` without notifications after the peripheral's GATT table changed; mainly the test peripheral plus the iOS bonded GATT cache) and F5 (no `launched by Core Bluetooth` on an iOS 26 restoration relaunch, headless background handler not started). Example fix made in this phase: the Simulate system kill button never worked (no Swift `DEBUG` condition), now in debug and profile builds (748dd34).
+Fixed in 0.1.0-beta.2 (approved 2026-10-14, unit-tested, not yet re-verified on the iPhone): F4 (iOS session can report `connected` without notifications after the peripheral's GATT table changed; mainly the test peripheral plus the iOS bonded GATT cache) and F5 (no `launched by Core Bluetooth` on an iOS 26 restoration relaunch, headless background handler not started). Example fix made in this phase: the Simulate system kill button never worked (no Swift `DEBUG` condition), now in debug and profile builds (748dd34).
 
 ## Hardware test session (2026-10-14), Phase B (Android extra): done
 
@@ -234,6 +234,6 @@ Left for you:
 
 Before 0.1.0 stable:
 
-6. Decide on the F4 and F5 fixes (test-results/RESULTS.md "Failures"); then install Xcode 26 and repeat checklist 1, 11, 12 and 21 with an iOS 26 SDK build (Phase C used Xcode 16.3 / iOS 18.4 SDK), and C2 to confirm F5.
+6. Install Xcode 26 and repeat checklist 1, 11, 12, 21, 22 and 23 with an iOS 26 SDK build (Phase C used Xcode 16.3 / iOS 18.4 SDK); 22 and 23 re-verify the F4/F5 fixes on the device.
 7. Test with a fixed-address peripheral (ESP32 or a static-address gadget): `disconnect`/`reboot` commands, real out-of-range, phone reboot (#10), absence over 10 min (#18), #20.
 8. Compile the ESP32 sketch once on your Arduino-ESP32 3.x core.

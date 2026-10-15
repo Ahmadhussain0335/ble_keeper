@@ -5,10 +5,10 @@ after the OS kills it, and after the phone reboots, on Android and iOS. When
 the OS does not allow that (user force-quit, Bluetooth off, missing
 permission), it tells you instead of failing silently.
 
-> **Pre-release (0.1.0-beta.1).** Android is verified on real hardware. iOS
+> **Pre-release (0.1.0-beta.2).** Android is verified on real hardware. iOS
 > was tested on an iPhone 13 (iOS 26.6) with profile and release builds made
-> with Xcode 16.3 (see [Verified on](#verified-on)); two iOS issues found in
-> that run are still open (see `test-results/RESULTS.md` in the repository).
+> with Xcode 16.3 (see [Verified on](#verified-on)); the two iOS issues found
+> in that run are fixed in this version but not yet re-tested on the device.
 
 ## Why
 
@@ -398,6 +398,11 @@ Future<void> main() async {
 - If it returns a future, the next batch waits for it. iOS gives a background
   app only a few seconds per Bluetooth event.
 - While a UI listener exists, events go to the UI only.
+- iOS with Flutter's UIScene template: a Core Bluetooth relaunch can start
+  the app's own Flutter engine (your `main()`) in the background. If that
+  engine listens to `events`, it receives them and the background handler
+  is not started. Put work that must happen in the background where both
+  paths reach it.
 
 ## Event log and privacy
 
@@ -510,6 +515,15 @@ table for unbonded devices. Turn Bluetooth off and on to clear it.
 
 **iOS: `Misconfigured: iOS does not know this peripheral`.** The identifier
 does not belong to this app install. Scan for the device in your app first.
+
+**iOS: `Connected` together with `Misconfigured: service ... not found`.** iOS
+caches the GATT table of a bonded peripheral. If the peripheral removed a
+service while connected and added it again (some peripherals do this on a
+firmware restart), the cache can keep the table without it; reconnecting
+does not refresh it. The peripheral must send Service Changed for the whole
+handle range when its table changes (and keep handles stable). Users can
+recover with Settings > Bluetooth > (i) > Forget This Device and pairing
+again.
 
 ## Limitations
 

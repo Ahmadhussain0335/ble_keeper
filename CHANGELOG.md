@@ -1,3 +1,32 @@
+## 0.1.0-beta.2
+
+Status: Android verified on real hardware. iOS tested on an iPhone 13
+(iOS 26.6) with profile and release builds made with Xcode 16.3; see
+"Verified on" in the README. The two iOS issues found there are fixed below
+and covered by unit tests, but not yet re-tested on the device.
+
+Fixed (iOS):
+
+* A session could report `Connected` without notifications after the
+  peripheral changed its GATT table. Service Changed is now handled during
+  setup too (not only when ready), notifications are re-enabled on every
+  new link instead of trusting a cached `isNotifying`, and a subscribed
+  characteristic that is missing after discovery is rediscovered once
+  (after 2 s) before `Blocked(misconfigured)` is reported. Problems are
+  reported once per connection instead of once per session. The message
+  says when the whole service is missing, which points to iOS's GATT cache
+  for bonded devices (see Troubleshooting in the README).
+* The background handler did not start after a Core Bluetooth relaunch on
+  iOS 26 when the launch options lacked `.bluetoothCentrals`. A state
+  restoration (`willRestoreState`) now also counts as a Bluetooth launch for
+  the headless-engine decision.
+
+Example app:
+
+* **Simulate system kill** never worked (the Runner target had no Swift
+  `DEBUG` condition); it is now available in debug and profile builds and
+  compiled out of release builds.
+
 ## 0.1.0-beta.1
 
 First public pre-release.
